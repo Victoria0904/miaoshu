@@ -1,4 +1,4 @@
-import { observable, action } from 'mobx-miniprogram-bindings';
+import { observable, action } from 'mobx-miniprogram';
 import { getStorage, setStorage } from '../utils/storage';
 import { mockUser } from '../services/mock-data';
 
