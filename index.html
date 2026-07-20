@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>喵舒 · 女性生命力养护湾</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    /* 主题色变量 */
+    :root {
+      --color-primary: #E8919C;
+      --color-primary-light: #F5DDE2;
+      --color-danger: #E65555;
+      --color-warning: #F0A04B;
+      --color-success: #67C23A;
+      --color-bg: #FAF8F5;
+      --color-text: #333333;
+      --color-text-secondary: #999999;
+    }
+    body {
+      background: #f0f0f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    }
+    /* 模拟手机外壳 */
+    .phone-frame {
+      width: 375px;
+      height: 720px;
+      margin: 20px auto;
+      background: var(--color-bg);
+      border-radius: 32px;
+      box-shadow: 0 0 0 8px #1a1a1a, 0 0 0 10px #333, 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    /* 状态栏 */
+    .status-bar {
+      height: 44px;
+      background: var(--color-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .status-bar::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background: #1a1a1a;
+      border-radius: 2px;
+      display: none;
+    }
+    /* TabBar */
+    .tab-bar {
+      height: 56px;
+      background: #fff;
+      border-top: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-shrink: 0;
+    }
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      flex: 1;
+      height: 100%;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .tab-item.active { color: var(--color-primary); }
+    .tab-item:not(.active) { color: var(--color-text-secondary); }
+    .tab-item .icon { font-size: 22px; }
+    .tab-item .label { font-size: 10px; }
+
+    /* 页面内容区 */
+    .page-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .page-content::-webkit-scrollbar { display: none; }
+
+    /* 卡片 */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 8px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* 疼痛强度颜色 */
+    .pain-low { color: var(--color-success); }
+    .pain-mid { color: var(--color-warning); }
+    .pain-high { color: var(--color-danger); }
+
+    /* 滑块 */
+    .pain-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #67C23A 0%, #67C23A 30%, #F0A04B 30%, #F0A04B 60%, #E65555 60%, #E65555 100%);
+      outline: none;
+    }
+    .pain-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--color-primary);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    /* 人体图 */
+    .body-map-container {
+      position: relative;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+    .body-map-svg {
+      width: 100%;
+      height: auto;
+    }
+    .pain-dot {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pain-dot:hover { opacity: 0.8; }
+
+    /* AI 流式输出 */
+    .ai-streaming {
+      display: inline-block;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* 加载动画 */
+    .loading-dots::after {
+      content: '...';
+      animation: loadingDots 1.5s infinite;
+    }
+    @keyframes loadingDots {
+      0% { content: '.'; }
+      33% { content: '..'; }
+      66% { content: '...'; }
+    }
+
+    /* 底部免责声明 */
+    .disclaimer {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      text-align: center;
+      padding: 8px 16px;
+    }
+
+    /* 标签 */
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin: 2px;
+    }
+
+    /* 弹窗遮罩 */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 历史记录动画 */
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 紧急舒缓按钮脉冲 */
+    .pulse-btn {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(232,145,156,0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(232,145,156,0); }
+      100% { box-shadow: 0 0 0 0 rgba(232,145,156,0); }
+    }
+  </style>
+</head>
+<body>
+<div class="phone-frame" x-data="miaoshuApp()" x-init="init()">
+
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span x-text="currentPageTitle"></span>
+  </div>
+
+  <!-- 页面内容 -->
+  <div class="page-content">
+
+    <!-- ========== 首页 ========== -->
+    <template x-if="currentTab === 'home'">
+      <div class="pb-4">
+        <!-- 顶部问候 -->
+        <div class="px-4 pt-4 pb-2">
+          <p class="text-sm text-gray-400">2026年7月20日 · 周一</p>
+          <p class="text-lg font-bold mt-1">你好，<span x-text="user.nickname"></span> 🌸</p>
+          <p class="text-sm text-gray-500 mt-1">
+            <span x-show="user.cyclePhase === 'menstrual'" class="text-pink-500">经期第 <span x-text="user.periodDay"></span> 天</span>
+            <span x-show="user.cyclePhase === 'luteal'">黄体期 · 距下次月经约 <span x-text="daysToNextPeriod"></span> 天</span>
+          </p>
+        </div>
+
+        <!-- 好看时间指标卡 -->
+        <div class="card" style="background: linear-gradient(135deg, #E8919C, #F5DDE2);">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-white text-xs opacity-90">本月被偷走的好看时间</p>
+              <p class="text-white text-3xl font-bold mt-1"><span x-text="reviewData.stolenBeautyHours"></span><span class="text-base ml-1">小时</span></p>
+              <p class="text-white text-xs opacity-80 mt-1">相当于 <span x-text="Math.round(reviewData.stolenBeautyHours / 24 * 10) / 10"></span> 天的自我养护被疼痛夺走</p>
+            </div>
+            <div class="text-5xl">⏰</div>
+          </div>
+        </div>
+
+        <!-- 正在疼痛？快速舒缓入口 -->
+        <div class="card" style="border: 2px solid var(--color-primary);">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-base" style="color: var(--color-primary);">正在疼痛？</p>
+              <p class="text-sm text-gray-500 mt-1">30 秒获取个性化舒缓方案</p>
+            </div>
+            <button class="px-5 py-2.5 rounded-full text-white text-sm font-bold pulse-btn"
+              style="background: var(--color-primary);"
+              @click="goRelief()">
+              立即舒缓 →
+            </button>
+          </div>
+        </div>
+
+        <!-- 今日养护方案 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-3">📋 今日养护建议</p>
+          <div class="space-y-2">
+            <template x-for="(tip, i) in todayTips" :key="i">
+              <div class="flex items-start gap-2">
+                <span class="text-pink-400 mt-0.5" x-text="tip.icon"></span>
+                <div class="flex-1">
+                  <p class="text-sm font-medium" x-text="tip.title"></p>
+                  <p class="text-xs text-gray-400" x-text="tip.desc"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 近期疼痛记录 -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-bold text-sm">📝 近期疼痛记录</p>
+            <span class="text-xs text-gray-400" @click="currentTab='record'">查看全部 →</span>
+          </div>
+          <div class="space-y-3">
+            <template x-for="record in painRecords.slice(0, 3)" :key="record.id">
+              <div class="flex items-center gap-3 pb-3 border-b border-gray-100 last:border-0">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                  :class="record.painIntensity <= 3 ? 'bg-green-400' : record.painIntensity <= 6 ? 'bg-orange-400' : 'bg-red-400'"
+                  x-text="record.painIntensity">
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium">
+                    <span x-text="record.painType"></span>
+                    <span class="text-xs text-gray-400 ml-1" x-text="record.periodDay ? '经期第'+record.periodDay+'天' : '非经期'"></span>
+                  </p>
+                  <p class="text-xs text-gray-400" x-text="record.dateText"></p>
+                </div>
+                <span class="text-xs text-gray-300">›</span>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- AI 就医导航提醒 -->
+        <div class="card" style="border-left: 3px solid var(--color-warning);">
+          <div class="flex items-start gap-2">
+            <span class="text-xl">🔔</span>
+            <div class="flex-1">
+              <p class="text-sm font-bold" style="color: var(--color-warning);">AI 就医参考信号</p>
+              <p class="text-xs text-gray-500 mt-1">近 3 个月疼痛强度呈上升趋势（4.2 → 6.8 → 7.5），建议关注并就医咨询。</p>
+              <button class="text-xs mt-2 px-3 py-1 rounded-full"
+                style="background: var(--color-warning); color: white;"
+                @click="currentTab='profile'; showReport=true">
+                生成就医报告 →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="disclaimer">⚠️ AI 建议非医疗诊断，紧急情况请立即就医</div>
+      </div>
+    </template>
+
+    <!-- ========== 记录页 ========== -->
+    <template x-if="currentTab === 'record'">
+      <div class="pb-4">
+        <div class="px-4 pt-4 pb-2">
+          <p class="text-lg font-bold">疼痛记录</p>
+          <p class="text-sm text-gray-400 mt-1">点击人体图标记疼痛位置</p>
+        </div>
+
+        <!-- 人体疼痛点位标记 -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-bold text-sm">🫀 疼痛点位标记</p>
+            <button class="text-xs text-pink-400" @click="clearPainDots()">清除标记</button>
+          </div>
+
+          <!-- 人体图：图片底图 + 可点击叠加层 -->
+          <div class="body-map-container" style="position: relative;">
+            <!-- 底图 -->
+            <img src="https://prd-tc-intl-cdn.codebanana.com/cb-user-uploads/9f0fa268-b23d-4be5-96f1-5e8e155b4236/assets/body_map_base_0.jpeg"
+                 alt="人体点位图" style="width: 100%; display: block; border-radius: 12px;"/>
+
+            <!-- 可点击叠加层 SVG（透明背景） -->
+            <svg class="body-map-overlay" viewBox="0 0 200 267" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;" @click="addPainDot($event)">
+              <defs>
+                <filter id="dotGlow2">
+                  <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <symbol id="pawprint2" viewBox="0 0 20 20">
+                  <ellipse cx="10" cy="13" rx="5" ry="4"/>
+                  <ellipse cx="4" cy="6" rx="2" ry="2.5"/>
+                  <ellipse cx="8" cy="3.5" rx="2" ry="2.5"/>
+                  <ellipse cx="12" cy="3.5" rx="2" ry="2.5"/>
+                  <ellipse cx="16" cy="6" rx="2" ry="2.5"/>
+                </symbol>
+              </defs>
+
+              <!-- 可点击区域（半透明，hover 变色） -->
+              <!-- 子宫区 -->
+              <path id="zone-uterus2" class="click-zone"
+                d="M 72,110 L 128,110 L 126,145 Q 100,153 74,145 Z"
+                fill="rgba(232,145,156,0.08)" stroke="#E8919C" stroke-width="1.2" stroke-dasharray="3,2"
+                @click.stop="selectZone('uterus', $event)"
+                style="cursor: pointer; transition: all 0.3s;"/>
+              <!-- 盆腔区 -->
+              <path id="zone-pelvic2" class="click-zone"
+                d="M 74,145 Q 100,153 126,145 L 125,175 Q 100,183 75,175 Z"
+                fill="rgba(232,145,156,0.08)" stroke="#E8919C" stroke-width="1.2" stroke-dasharray="3,2"
+                @click.stop="selectZone('pelvic', $event)"
+                style="cursor: pointer; transition: all 0.3s;"/>
+              <!-- 腰部 -->
+              <path id="zone-lumbar2" class="click-zone"
+                d="M 70,110 Q 62,115 62,125 L 64,185 Q 65,195 72,193 L 70,110 Z M 130,110 Q 138,115 138,125 L 136,185 Q 135,195 128,193 L 130,110 Z"
+                fill="rgba(232,145,156,0.08)" stroke="#E8919C" stroke-width="1" stroke-dasharray="3,2"
+                @click.stop="selectZone('lumbar', $event)"
+                style="cursor: pointer; transition: all 0.3s;"/>
+              <!-- 大腿根部 -->
+              <path id="zone-thigh2" class="click-zone"
+                d="M 75,175 Q 100,183 125,175 L 122,205 Q 110,210 100,208 Q 90,210 78,205 Z"
+                fill="rgba(232,145,156,0.08)" stroke="#E8919C" stroke-width="1" stroke-dasharray="3,2"
+                @click.stop="selectZone('thigh', $event)"
+                style="cursor: pointer; transition: all 0.3s;"/>
+
+              <!-- 猫爪印标记 -->
+              <template x-for="(dot, i) in painDots" :key="i">
+                <g style="pointer-events: none;">
+                  <circle :cx="dot.x" :cy="dot.y" r="11" :fill="dot.intensity === 'severe' ? '#E65555' : dot.intensity === 'moderate' ? '#F0A04B' : '#67C23A'" opacity="0.15"/>
+                  <use :href="'#pawprint2'" :x="dot.x - 9" :y="dot.y - 9" width="18" height="18"
+                    :fill="dot.intensity === 'severe' ? '#E65555' : dot.intensity === 'moderate' ? '#F0A04B' : '#67C23A'"
+                    opacity="0.88" filter="url(#dotGlow2)"/>
+                  <text :x="dot.x" :y="dot.y + 15" text-anchor="middle" font-size="6" :fill="dot.intensity === 'severe' ? '#E65555' : dot.intensity === 'moderate' ? '#F0A04B' : '#67C23A'" font-weight="bold" x-text="'#' + (i + 1)"></text>
+                </g>
+              </template>
+            </svg>
+          </div>
+
+          <!-- 标记的点位列表 -->
+          <div x-show="painDots.length > 0" class="mt-3 space-y-2">
+            <template x-for="(dot, i) in painDots" :key="i">
+              <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-2 fade-in">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                  :class="dot.intensity === 'severe' ? 'bg-red-400' : dot.intensity === 'moderate' ? 'bg-orange-400' : 'bg-green-400'"
+                  x-text="'🐾'"></span>
+                <span class="text-xs font-medium text-gray-600" x-text="dot.label"></span>
+                <select x-model="dot.intensity" class="text-xs border-0 bg-transparent flex-1">
+                  <option value="mild">轻度</option>
+                  <option value="moderate">中度</option>
+                  <option value="severe">重度</option>
+                </select>
+                <button class="text-xs text-gray-400" @click="painDots.splice(i, 1)">✕</button>
+              </div>
+            </template>
+          </div>
+          <p x-show="painDots.length === 0" class="text-center text-xs text-gray-300 mt-2">点击人体图标记疼痛位置</p>
+        </div>
+
+        <!-- 疼痛强度滑块 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-3">📊 疼痛强度（VAS 0-10）</p>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-green-500">无痛</span>
+            <input type="range" min="0" max="10" step="1" x-model="newRecord.painIntensity" class="pain-slider flex-1">
+            <span class="text-xs text-red-500">剧痛</span>
+          </div>
+          <div class="text-center mt-2">
+            <span class="text-3xl font-bold"
+              :class="newRecord.painIntensity <= 3 ? 'pain-low' : newRecord.painIntensity <= 6 ? 'pain-mid' : 'pain-high'"
+              x-text="newRecord.painIntensity"></span>
+            <span class="text-sm text-gray-400 ml-1">/ 10</span>
+          </div>
+          <div class="text-center mt-1">
+            <span class="text-xs" :class="newRecord.painIntensity <= 3 ? 'pain-low' : newRecord.painIntensity <= 6 ? 'pain-mid' : 'pain-high'"
+              x-text="newRecord.painIntensity <= 3 ? '轻度 · 可忍受' : newRecord.painIntensity <= 6 ? '中度 · 影响生活' : '重度 · 难以忍受'"></span>
+          </div>
+        </div>
+
+        <!-- 疼痛性质 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-3">疼痛性质</p>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="type in painTypes" :key="type">
+              <button class="tag border"
+                :class="newRecord.painType === type ? 'bg-pink-100 border-pink-400 text-pink-600' : 'border-gray-200 text-gray-500'"
+                @click="newRecord.painType = type"
+                x-text="type"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- 伴随症状 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-3">伴随症状（多选）</p>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="symptom in symptomOptions" :key="symptom">
+              <button class="tag border"
+                :class="newRecord.symptoms.includes(symptom) ? 'bg-pink-100 border-pink-400 text-pink-600' : 'border-gray-200 text-gray-500'"
+                @click="toggleSymptom(symptom)"
+                x-text="symptom"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- 场景选择 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-3">当前场景</p>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="scene in sceneOptions" :key="scene.value">
+              <button class="tag border"
+                :class="newRecord.scene === scene.value ? 'bg-pink-100 border-pink-400 text-pink-600' : 'border-gray-200 text-gray-500'"
+                @click="newRecord.scene = scene.value"
+                x-text="scene.label"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- 保存按钮 -->
+        <div class="px-4 mt-4">
+          <button class="w-full py-3 rounded-full text-white font-bold text-sm"
+            style="background: var(--color-primary);"
+            @click="saveRecord()">
+            保存记录
+          </button>
+        </div>
+
+        <!-- 历史记录：列表 ↔ 日历切换 -->
+        <div class="card mt-4">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-bold text-sm">📋 疼痛记录</p>
+            <div class="flex bg-gray-100 rounded-full p-0.5">
+              <button class="px-3 py-1 text-xs rounded-full transition-all"
+                :class="recordView === 'list' ? 'bg-white text-pink-500 font-bold shadow' : 'text-gray-400'"
+                @click="recordView = 'list'">列表</button>
+              <button class="px-3 py-1 text-xs rounded-full transition-all"
+                :class="recordView === 'calendar' ? 'bg-white text-pink-500 font-bold shadow' : 'text-gray-400'"
+                @click="recordView = 'calendar'">日历</button>
+            </div>
+          </div>
+
+          <!-- 列表视图 -->
+          <template x-if="recordView === 'list'">
+            <div class="space-y-3">
+              <template x-for="record in painRecords" :key="record.id">
+                <div class="bg-gray-50 rounded-lg p-3 fade-in">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                        :class="record.painIntensity <= 3 ? 'bg-green-400' : record.painIntensity <= 6 ? 'bg-orange-400' : 'bg-red-400'"
+                        x-text="record.painIntensity"></span>
+                      <div>
+                        <p class="text-sm font-medium">
+                          <span x-text="record.painType"></span>
+                          <span class="text-xs text-gray-400 ml-1" x-text="record.periodDay ? '· 经期第'+record.periodDay+'天' : '· 非经期'"></span>
+                        </p>
+                        <p class="text-xs text-gray-400" x-text="record.dateText"></p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-xs text-gray-400" x-text="record.sceneLabel"></p>
+                      <div class="flex gap-1 mt-1 flex-wrap justify-end">
+                        <template x-for="s in record.symptoms" :key="s">
+                          <span class="text-xs px-1.5 py-0.5 bg-pink-50 text-pink-400 rounded" x-text="s"></span>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- 日历视图 -->
+          <template x-if="recordView === 'calendar'">
+            <div class="fade-in">
+              <!-- 月份导航 + 经期标记 -->
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-base text-gray-400 cursor-pointer" @click="calPrevMonth()">‹</span>
+                <span class="text-sm font-bold" x-text="calYear + '年' + (calMonth+1) + '月'"></span>
+                <span class="text-base text-gray-400 cursor-pointer" @click="calNextMonth()">›</span>
+              </div>
+
+              <!-- 经期标记操作栏 -->
+              <div class="flex items-center gap-2 mb-2">
+                <button class="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  :class="periodMarking ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-400'"
+                  @click="togglePeriodMarking()">
+                  <span x-show="!periodMarking">🌸 标记经期开始</span>
+                  <span x-show="periodMarking">点击日期标记经期 · 再次点击取消</span>
+                </button>
+                <button class="px-3 py-1.5 rounded-lg text-xs bg-gray-50 text-gray-400" @click="clearPeriod()">
+                  清除经期
+                </button>
+              </div>
+
+              <!-- 星期表头 -->
+              <div class="grid grid-cols-7 gap-0.5 mb-1">
+                <template x-for="d in ['日','一','二','三','四','五','六']" :key="d">
+                  <div class="text-center text-xs text-gray-300 font-medium" x-text="d"></div>
+                </template>
+              </div>
+
+              <!-- 日历网格 -->
+              <div class="grid grid-cols-7 gap-0.5">
+                <template x-for="day in calendarDays" :key="day.key">
+                  <div class="relative rounded-lg flex flex-col items-center justify-center text-xs cursor-pointer transition-all"
+                    :class="day.empty ? 'bg-transparent' : periodMarking ? 'hover:bg-pink-100' : day.isPeriod ? 'bg-pink-50' : day.hasRecord ? 'bg-orange-50' : 'bg-gray-50 hover:bg-gray-100'"
+                    @click="!day.empty && handleDayClick(day)">
+                    <!-- 日期号 -->
+                    <span x-show="!day.empty"
+                      :class="day.isToday ? 'text-pink-500 font-bold' : day.isPeriod ? 'text-pink-400' : 'text-gray-600'"
+                      x-text="day.day"></span>
+                    <!-- 经期天数标签 -->
+                    <span x-show="!day.empty && day.isPeriod" class="text-xs text-pink-300" x-text="'D'+day.periodDay"></span>
+                    <!-- 疼痛色块 -->
+                    <span x-show="!day.empty && day.painIntensity > 0"
+                      class="w-4 h-1 rounded-full mt-0.5"
+                      :style="`background: ${day.painIntensity <= 3 ? '#67C23A' : day.painIntensity <= 6 ? '#F0A04B' : day.painIntensity <= 8 ? '#E65555' : '#C0392B'}`"></span>
+                    <!-- 非经期疼痛标记（紫色小点） -->
+                    <span x-show="!day.empty && day.painIntensity > 0 && !day.isPeriod"
+                      class="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                  </div>
+                </template>
+              </div>
+
+              <!-- 图例 -->
+              <div class="flex items-center justify-center gap-3 mt-3 text-xs text-gray-300 flex-wrap">
+                <span class="flex items-center gap-1"><span class="w-3 h-1 rounded-full bg-green-400"></span>轻度</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-1 rounded-full bg-orange-400"></span>中度</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-1 rounded-full bg-red-400"></span>重度</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-1 rounded-full bg-pink-300"></span>经期</span>
+                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>非经期痛</span>
+              </div>
+
+              <!-- 选中日期的记录详情 -->
+              <div x-show="selectedCalDay" class="mt-3 bg-pink-50 rounded-lg p-3 fade-in">
+                <p class="text-sm font-bold text-pink-500 mb-2" x-text="selectedCalDay?.dateLabel"></p>
+                <template x-if="selectedCalDay?.isPeriod">
+                  <p class="text-xs text-pink-400 mb-1">经期第 <span x-text="selectedCalDay?.periodDay"></span> 天</p>
+                </template>
+                <template x-for="record in (selectedCalDay?.records || [])" :key="record.id">
+                  <div class="flex items-center gap-2 py-1">
+                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      :class="record.painIntensity <= 3 ? 'bg-green-400' : record.painIntensity <= 6 ? 'bg-orange-400' : 'bg-red-400'"
+                      x-text="record.painIntensity"></span>
+                    <span class="text-sm" x-text="record.painType"></span>
+                    <span class="text-xs text-gray-400" x-text="record.symptoms?.join('、')"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="disclaimer">⚠️ AI 建议非医疗诊断，紧急情况请立即就医</div>
+      </div>
+    </template>
+
+    <!-- ========== 复盘页 ========== -->
+    <template x-if="currentTab === 'review'">
+      <div class="pb-4">
+        <div class="px-4 pt-4 pb-2">
+          <p class="text-lg font-bold">生命力复盘</p>
+          <p class="text-sm text-gray-400 mt-1">2026年7月 · 月度报告</p>
+        </div>
+
+        <!-- 被偷走的好看时间 -->
+        <div class="card text-center" style="background: linear-gradient(135deg, #E8919C, #F5DDE2);">
+          <p class="text-white text-xs opacity-90">本月被偷走的好看时间</p>
+          <p class="text-white text-5xl font-bold mt-2"><span x-text="reviewData.stolenBeautyHours"></span><span class="text-lg ml-1">h</span></p>
+          <p class="text-white text-xs opacity-80 mt-2">相当于 <span x-text="Math.round(reviewData.stolenBeautyHours / 24 * 10) / 10"></span> 天的自我养护时间被疼痛夺走</p>
+        </div>
+
+        <!-- 五种时间分布 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-1">⏳ 五种时间分布</p>
+          <p class="text-xs text-gray-400 mb-3">本月因疼痛损失 <span class="font-bold" style="color: var(--color-primary);" x-text="reviewData.stolenBeautyHours"></span> 小时好看时间，以下为剩余时间的分布</p>
+          <div id="timeRingChart" style="width: 100%; height: 240px;"></div>
+          <div class="space-y-2 mt-2">
+            <template x-for="item in timeBreakdownList" :key="item.name">
+              <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-sm" :style="`background:${item.color}`"></span>
+                  <span x-text="item.icon + ' ' + item.name"></span>
+                </div>
+                <div>
+                  <span class="font-bold" x-text="item.hours + 'h'"></span>
+                  <span class="text-gray-400 text-xs ml-1" x-text="'(' + item.percent + '%)'"></span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 疼痛趋势曲线 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-3">📈 疼痛强度月度趋势</p>
+          <div id="trendChart" style="width: 100%; height: 200px;"></div>
+          <div class="mt-2 text-xs text-gray-400">
+            <p>📊 平均疼痛强度：<span class="font-bold text-gray-600" x-text="reviewData.avgIntensity"></span> / 10</p>
+            <p>📅 疼痛发作次数：<span class="font-bold text-gray-600" x-text="reviewData.painCount"></span> 次</p>
+            <p class="mt-1" x-show="reviewData.trendUp" style="color: var(--color-warning);">⚠️ 疼痛强度较上月上升 <span x-text="reviewData.trendDelta"></span>，建议关注</p>
+          </div>
+        </div>
+
+        <!-- AI 减损建议 -->
+        <div class="card" style="border-left: 3px solid var(--color-primary);">
+          <p class="font-bold text-sm mb-2">🤖 AI 减损建议</p>
+          <div class="space-y-2">
+            <template x-for="(tip, i) in reviewData.aiSuggestions" :key="i">
+              <div class="flex items-start gap-2">
+                <span class="text-pink-400 text-xs mt-0.5">•</span>
+                <p class="text-sm text-gray-600" x-text="tip"></p>
+              </div>
+            </template>
+          </div>
+          <p class="text-xs text-gray-300 mt-3">💡 建议基于个人记录数据推算，非医疗建议</p>
+        </div>
+
+        <!-- 五种时间计算逻辑 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-2">五种时间计算逻辑</p>
+          <div class="text-xs text-gray-400 space-y-1">
+            <p>• 痛经请假/效率下降 → 侵占赚钱时间</p>
+            <p>• 取消社交/运动 → 侵占好玩时间和好看时间</p>
+            <p>• 无法专注深度工作 → 侵占心流时间</p>
+            <p>• 疼痛发作被动休息 → 侵占生存时间</p>
+          </div>
+        </div>
+
+        <div class="disclaimer">⚠️ AI 建议非医疗诊断，紧急情况请立即就医</div>
+      </div>
+    </template>
+
+    <!-- ========== 我的页 ========== -->
+    <template x-if="currentTab === 'profile'">
+      <div class="pb-4">
+        <div class="px-4 pt-4 pb-2">
+          <p class="text-lg font-bold">我的</p>
+        </div>
+
+        <!-- 用户信息卡 -->
+        <div class="card flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-2xl">🌸</div>
+          <div>
+            <p class="font-bold text-sm" x-text="user.nickname"></p>
+            <p class="text-xs text-gray-400">年龄段：<span x-text="user.ageRange"></span> · 体质：<span x-text="user.constitutionTag"></span></p>
+            <p class="text-xs text-gray-400">经期周期：<span x-text="user.cycleLength"></span>天 / <span x-text="user.periodLength"></span>天</p>
+          </div>
+        </div>
+
+        <!-- 就医报告 -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-bold text-sm">📋 就医报告导出</p>
+            <span class="text-xs px-2 py-0.5 bg-orange-50 text-orange-400 rounded">辅助记录·非诊断</span>
+          </div>
+
+          <template x-if="!showReport">
+            <div>
+              <p class="text-sm text-gray-500 mb-3">生成结构化就医报告，帮医生 30 秒看懂你的疼痛全貌。</p>
+              <button class="w-full py-2.5 rounded-full text-white font-bold text-sm"
+                style="background: var(--color-primary);"
+                @click="generateReport()">
+                生成就医报告
+              </button>
+            </div>
+          </template>
+
+          <template x-if="showReport && generatingReport">
+            <div class="text-center py-8">
+              <div class="text-3xl mb-2">🤖</div>
+              <p class="text-sm text-gray-400">AI 正在整理您的疼痛数据<span class="loading-dots"></span></p>
+            </div>
+          </template>
+
+          <template x-if="showReport && !generatingReport">
+            <div class="space-y-3">
+              <!-- 主诉 -->
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs font-bold text-gray-400">【主诉】</p>
+                <p class="text-sm mt-1" x-text="medicalReport.chiefComplaint"></p>
+              </div>
+              <!-- 现病史 -->
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs font-bold text-gray-400">【现病史摘要】</p>
+                <p class="text-sm mt-1" x-text="medicalReport.historySummary"></p>
+              </div>
+              <!-- 疼痛曲线 -->
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs font-bold text-gray-400">【疼痛强度变化】</p>
+                <div id="reportTrendChart" style="width: 100%; height: 120px;"></div>
+              </div>
+              <!-- 用药记录 -->
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs font-bold text-gray-400">【用药记录】</p>
+                <div class="space-y-1 mt-1">
+                  <template x-for="med in medicalReport.medications" :key="med.name">
+                    <p class="text-sm">• <span x-text="med.name"></span>：<span x-text="med.dosage"></span>，<span x-text="med.frequency"></span></p>
+                  </template>
+                </div>
+              </div>
+              <!-- 就医问题清单 -->
+              <div class="bg-pink-50 rounded-lg p-3">
+                <p class="text-xs font-bold text-pink-400">【建议就诊时咨询的问题】</p>
+                <div class="space-y-1 mt-1">
+                  <template x-for="(q, i) in medicalReport.questions" :key="i">
+                    <p class="text-sm text-gray-600"><span x-text="i+1 + '.'"></span> <span x-text="q"></span></p>
+                  </template>
+                </div>
+              </div>
+              <!-- 异常信号高亮 -->
+              <div class="bg-orange-50 rounded-lg p-3" style="border-left: 3px solid var(--color-warning);">
+                <p class="text-xs font-bold" style="color: var(--color-warning);">【需关注的疼痛变化】</p>
+                <p class="text-sm mt-1 text-gray-600" x-text="medicalReport.alertText"></p>
+              </div>
+
+              <button class="w-full py-2.5 rounded-full text-white font-bold text-sm"
+                style="background: var(--color-primary);"
+                @click="downloadReport()">
+                📥 下载 PDF / 保存至微信
+              </button>
+            </div>
+          </template>
+        </div>
+
+        <!-- 统计概览 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-3">📊 我的疼痛统计</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+              <p class="text-2xl font-bold" style="color: var(--color-primary);" x-text="painRecords.length"></p>
+              <p class="text-xs text-gray-400 mt-1">总记录数</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+              <p class="text-2xl font-bold" style="color: var(--color-danger);" x-text="reviewData.avgIntensity"></p>
+              <p class="text-xs text-gray-400 mt-1">平均疼痛强度</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+              <p class="text-2xl font-bold" style="color: var(--color-warning);" x-text="reviewData.stolenBeautyHours"></p>
+              <p class="text-xs text-gray-400 mt-1">被偷走的好看时间(h)</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+              <p class="text-2xl font-bold" style="color: var(--color-success);" x-text="reviewData.painCount"></p>
+              <p class="text-xs text-gray-400 mt-1">本月疼痛发作</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 隐私协议 -->
+        <div class="card">
+          <p class="font-bold text-sm mb-2">🔒 隐私与数据</p>
+          <div class="space-y-2">
+            <p class="text-sm text-gray-500 flex items-center justify-between cursor-pointer" @click="$refs.privacyModal.classList.remove('hidden')">
+              查看隐私协议 <span>›</span>
+            </p>
+            <p class="text-sm text-gray-500 flex items-center justify-between cursor-pointer" @click="exportData()">
+              导出我的数据 <span>›</span>
+            </p>
+            <p class="text-sm text-red-400 flex items-center justify-between cursor-pointer" @click="deleteAllData()">
+              删除全部数据 <span>›</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="disclaimer">
+          ⚠️ 本应用为 AI 辅助工具，非医疗诊断设备<br>
+          所有建议仅供参考，最终决策权在用户和医生手中
+        </div>
+      </div>
+    </template>
+
+  </div>
+
+  <!-- TabBar -->
+  <div class="tab-bar">
+    <div class="tab-item" :class="currentTab === 'home' ? 'active' : ''" @click="currentTab = 'home'">
+      <span class="icon">🏠</span><span class="label">首页</span>
+    </div>
+    <div class="tab-item" :class="currentTab === 'record' ? 'active' : ''" @click="currentTab = 'record'">
+      <span class="icon">📝</span><span class="label">记录</span>
+    </div>
+    <div class="tab-item" :class="currentTab === 'review' ? 'active' : ''" @click="currentTab = 'review'; $nextTick(() => renderCharts())">
+      <span class="icon">📊</span><span class="label">复盘</span>
+    </div>
+    <div class="tab-item" :class="currentTab === 'profile' ? 'active' : ''" @click="currentTab = 'profile'">
+      <span class="icon">👤</span><span class="label">我的</span>
+    </div>
+  </div>
+
+  <!-- AI 舒缓弹窗 -->
+  <template x-if="showReliefModal">
+    <div class="modal-overlay" @click.self="showReliefModal = false">
+      <div class="bg-white rounded-2xl mx-6 w-full max-w-sm" style="max-height: 80%; overflow-y: auto;" @click.stop>
+        <!-- 头部 -->
+        <div class="px-4 pt-4 pb-2 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
+          <p class="font-bold text-base">🤖 AI 疼痛舒缓方案</p>
+          <button class="text-gray-400 text-lg" @click="showReliefModal = false">✕</button>
+        </div>
+
+        <!-- 场景选择 -->
+        <template x-if="reliefStep === 'scene'">
+          <div class="p-4">
+            <p class="text-sm text-gray-500 mb-3">你现在在哪里？选择场景获取适配方案：</p>
+            <div class="grid grid-cols-2 gap-3">
+              <template x-for="scene in sceneOptions" :key="scene.value">
+                <button class="border-2 rounded-xl p-4 text-center transition-all"
+                  :class="reliefScene === scene.value ? 'border-pink-400 bg-pink-50' : 'border-gray-200'"
+                  @click="reliefScene = scene.value; reliefStep = 'generating'; generateRelief()">
+                  <p class="text-2xl" x-text="scene.icon"></p>
+                  <p class="text-sm font-medium mt-1" x-text="scene.label"></p>
+                </button>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- 生成中 -->
+        <template x-if="reliefStep === 'generating'">
+          <div class="p-8 text-center">
+            <div class="text-4xl mb-3">🤖</div>
+            <p class="text-sm text-gray-500">正在生成个性化舒缓方案</p>
+            <p class="text-sm text-gray-400 mt-1">基于：强度 <span x-text="newRecord.painIntensity"></span> · <span x-text="newRecord.painType || '绞痛'"></span> · <span x-text="getSceneLabel(reliefScene)"></span> · <span x-text="user.constitutionTag"></span>体质</p>
+            <div class="mt-4">
+              <span class="loading-dots text-lg text-pink-400"></span>
+            </div>
+          </div>
+        </template>
+
+        <!-- 方案结果 -->
+        <template x-if="reliefStep === 'result'">
+          <div class="p-4 space-y-3">
+            <!-- 时间汇总 -->
+            <div class="bg-pink-50 rounded-lg p-3 text-center">
+              <p class="text-sm text-gray-500">完成全套方案约需</p>
+              <p class="text-2xl font-bold" style="color: var(--color-primary);"><span x-text="reliefPlan.totalMinutes"></span> 分钟</p>
+              <p class="text-xs text-gray-400 mt-1" x-text="reliefPlan.timeSummary"></p>
+            </div>
+
+            <!-- 动作清单 -->
+            <div>
+              <p class="font-bold text-sm mb-2">舒缓动作</p>
+              <div class="space-y-2">
+                <template x-for="(action, i) in reliefPlan.actions" :key="i">
+                  <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-sm font-medium">
+                          <span class="text-gray-300 mr-1" x-text="(i+1) + '.'"></span>
+                          <span x-text="action.name"></span>
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1" x-text="action.desc"></p>
+                      </div>
+                      <div class="text-right ml-2">
+                        <span class="text-xs px-2 py-0.5 bg-pink-50 text-pink-400 rounded" x-text="action.duration + 'min'"></span>
+                        <p class="text-xs text-gray-300 mt-1" x-text="action.area"></p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- 避免事项 -->
+            <div>
+              <p class="font-bold text-sm mb-2">⚠️ 避免事项</p>
+              <div class="space-y-1">
+                <template x-for="(item, i) in reliefPlan.avoidItems" :key="i">
+                  <p class="text-sm text-gray-500">• <span x-text="item"></span></p>
+                </template>
+              </div>
+            </div>
+
+            <!-- 中医体质声明 -->
+            <div class="bg-yellow-50 rounded-lg p-2">
+              <p class="text-xs text-gray-400">
+                💡 体质分类仅作为生活方式适配参考，不替代中医诊断。方案聚焦饮食/保暖/舒缓动作等生活调节。
+              </p>
+            </div>
+
+            <button class="w-full py-2.5 rounded-full text-white font-bold text-sm"
+              style="background: var(--color-primary);"
+              @click="showReliefModal = false; reliefStep = 'scene'; reliefScene = ''">
+              完成，记录这次疼痛
+            </button>
+          </div>
+        </template>
+
+        <div class="disclaimer">⚠️ AI 建议非医疗方案，紧急情况请立即就医</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- 隐私协议弹窗 -->
+  <div x-ref="privacyModal" class="modal-overlay hidden" @click="$refs.privacyModal.classList.add('hidden')">
+    <div class="bg-white rounded-2xl mx-6 w-full max-w-sm p-4" style="max-height: 70%; overflow-y: auto;" @click.stop>
+      <div class="flex items-center justify-between mb-3">
+        <p class="font-bold text-base">🔒 隐私协议</p>
+        <button class="text-gray-400" @click="$refs.privacyModal.classList.add('hidden')">✕</button>
+      </div>
+      <div class="text-sm text-gray-500 space-y-3">
+        <p><b>1. 数据存储</b>：您的疼痛记录数据经加密后存储于云端数据库，仅您本人可访问（行级安全策略 RLS）。</p>
+        <p><b>2. AI 调用脱敏</b>：调用 AI API 前，系统会对敏感信息（姓名、手机号等）进行脱敏处理，不传输给第三方模型服务。</p>
+        <p><b>3. 数据授权</b>：您可随时导出全部数据（JSON 格式），或一键删除账户及全部关联数据。</p>
+        <p><b>4. 非医疗诊断</b>：本应用为 AI 辅助工具，所有建议仅供参考，不构成医疗诊断或治疗建议。</p>
+        <p><b>5. 合规声明</b>：遵循《个人信息保护法》及医疗数据相关法规。</p>
+      </div>
+      <button class="w-full mt-4 py-2 rounded-full text-white text-sm font-bold"
+        style="background: var(--color-primary);"
+        @click="$refs.privacyModal.classList.add('hidden')">
+        我已阅读并同意
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast 提示 -->
+<div x-data="{ show: false, msg: '' }"
+     x-show="show"
+     x-transition
+     x-init="window.__toast = (m) => { msg = m; show = true; setTimeout(() => show = false, 2000) }"
+     class="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-black bg-opacity-70 text-white text-sm rounded-full z-[200]"
+     style="pointer-events: none;">
+  <span x-text="msg"></span>
+</div>
+
+<script>
+function miaoshuApp() {
+  return {
+    // ===== 状态 =====
+    currentTab: 'home',
+    showReliefModal: false,
+    reliefStep: 'scene',
+    reliefScene: '',
+    showReport: false,
+    generatingReport: false,
+
+    // 用户数据
+    user: {
+      nickname: 'Victoria',
+      ageRange: '26-35',
+      constitutionTag: '宫寒',
+      cycleLength: 28,
+      periodLength: 5,
+      periodDay: 2,
+      cyclePhase: 'menstrual',
+      lastPeriodDate: '2026-07-19',
+    },
+
+    // 疼痛记录
+    painRecords: [],
+    painDots: [],
+    hoveredZone: '',
+    recordView: 'list',
+    calYear: 2026,
+    calMonth: 6,  // 0-indexed: July = 6
+    selectedCalDay: null,
+    periodMarking: false,
+    periodStartDay: 19,  // 用户标记的经期开始日期
+    newRecord: {
+      painIntensity: 5,
+      painType: '绞痛',
+      symptoms: [],
+      scene: 'home',
+    },
+
+    // AI 舒缓方案
+    reliefPlan: {
+      totalMinutes: 0,
+      actions: [],
+      avoidItems: [],
+      timeSummary: '',
+    },
+
+    // 就医报告
+    medicalReport: {},
+
+    // 复盘数据
+    reviewData: {
+      stolenBeautyHours: 12.5,
+      avgIntensity: 6.8,
+      painCount: 5,
+      trendUp: true,
+      trendDelta: '+1.2',
+      aiSuggestions: [
+        '你的疼痛峰值通常在经期第 1-2 天上午，建议提前 1 天晚上减少安排，把重要工作挪到疼痛缓解后。',
+        '近 3 个月疼痛强度持续上升（4.2→6.8→7.5），建议关注并就医咨询，获取专业评估。',
+        '非经期盆腔痛出现 3 次，记录关联显示与情绪波动有关，建议关注情绪管理。',
+      ],
+    },
+
+    // 时间分布（严格五种时间，不含"疼痛时间"）
+    timeBreakdownList: [
+      { name: '生存时间', icon: '💤', hours: 28, percent: 37, color: '#A0C4FF' },
+      { name: '赚钱时间', icon: '💼', hours: 22, percent: 29, color: '#B9FBC0' },
+      { name: '好看时间', icon: '🌸', hours: 11, percent: 15, color: '#E8919C' },
+      { name: '好玩时间', icon: '🎮', hours: 8, percent: 11, color: '#FFD6A5' },
+      { name: '心流时间', icon: '🧠', hours: 5, percent: 8, color: '#C5A3FF' },
+    ],
+
+    // 选项常量
+    painTypes: ['钝痛', '刺痛', '绞痛', '坠痛', '隐痛', '灼烧痛'],
+    symptomOptions: ['恶心', '呕吐', '腹泻', '头晕', '乏力', '腰酸', '冷汗', '情绪低落'],
+    sceneOptions: [
+      { value: 'home', label: '居家', icon: '🏠' },
+      { value: 'office', label: '办公室', icon: '💼' },
+      { value: 'commute', label: '通勤', icon: '🚇' },
+      { value: 'travel', label: '出差', icon: '✈️' },
+    ],
+
+    todayTips: [
+      { icon: '🔥', title: '经期第 2 天·疼痛高峰期', desc: '建议热敷腹部，避免冷饮和剧烈运动' },
+      { icon: '🍵', title: '饮食建议', desc: '宫寒体质·宜温热饮食，推荐红糖姜茶' },
+      { icon: '🧘', title: '舒缓动作', desc: '猫牛式伸展 5 分钟，缓解腰部坠痛' },
+    ],
+
+    // ===== 计算属性 =====
+    get currentPageTitle() {
+      const titles = { home: '喵舒', record: '疼痛记录', review: '生命力复盘', profile: '我的' };
+      return titles[this.currentTab] || '喵舒';
+    },
+    get daysToNextPeriod() {
+      return 7;
+    },
+    get calendarDays() {
+      const days = [];
+      const firstDay = new Date(this.calYear, this.calMonth, 1);
+      const lastDay = new Date(this.calYear, this.calMonth + 1, 0);
+      const startWeekday = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+      const today = new Date();
+
+      const periodStart = this.periodStartDay;
+      const periodEnd = periodStart + (this.user.periodLength || 5) - 1;
+
+      // 疼痛记录映射到日期
+      const recordMap = {};
+      this.painRecords.forEach(r => {
+        const day = parseInt(r.dateText.split(' ')[0].split('-')[2]);
+        if (!recordMap[day]) recordMap[day] = [];
+        recordMap[day].push(r);
+      });
+
+      for (let i = 0; i < startWeekday; i++) {
+        days.push({ key: 'e' + i, empty: true });
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const isPeriod = d >= periodStart && d <= periodEnd;
+        const records = recordMap[d] || [];
+        const maxIntensity = records.length > 0 ? Math.max(...records.map(r => r.painIntensity)) : 0;
+        const isToday = this.calYear === today.getFullYear() && this.calMonth === today.getMonth() && d === today.getDate();
+
+        days.push({
+          key: 'd' + d,
+          day: d,
+          empty: false,
+          isPeriod,
+          periodDay: isPeriod ? (d - periodStart + 1) : null,
+          painIntensity: maxIntensity,
+          hasRecord: records.length > 0,
+          isToday,
+          records,
+          dateLabel: `${this.calMonth + 1}月${d}日${isPeriod ? '（经期第' + (d - periodStart + 1) + '天）' : ''}`,
+        });
+      }
+      return days;
+    },
+    getSceneLabel(val) {
+      const s = this.sceneOptions.find(o => o.value === val);
+      return s ? s.label : '';
+    },
+
+    // ===== 日历方法 =====
+    calPrevMonth() {
+      if (this.calMonth === 0) { this.calMonth = 11; this.calYear--; } else { this.calMonth--; }
+    },
+    calNextMonth() {
+      if (this.calMonth === 11) { this.calMonth = 0; this.calYear++; } else { this.calMonth++; }
+    },
+    togglePeriodMarking() {
+      this.periodMarking = !this.periodMarking;
+      if (this.periodMarking) {
+        window.__toast?.('点击日历中经期开始的日期');
+      }
+    },
+    clearPeriod() {
+      this.periodStartDay = 0;
+      window.__toast?.('经期标记已清除');
+    },
+    handleDayClick(day) {
+      if (this.periodMarking) {
+        // 标记经期开始日期
+        this.periodStartDay = day.day;
+        this.periodMarking = false;
+        window.__toast?.('经期已标记：' + day.dateLabel);
+      } else if (day.hasRecord) {
+        // 有记录，展开详情
+        this.selectedCalDay = this.selectedCalDay?.day === day.day ? null : day;
+      } else {
+        // 无记录，提示新增
+        this.selectedCalDay = day;
+        window.__toast?.('点击「保存记录」添加当天的疼痛记录');
+      }
+    },
+
+    // ===== 初始化 =====
+    init() {
+      this.loadMockData();
+    },
+
+    // ===== Mock 数据 =====
+    loadMockData() {
+      this.painRecords = [
+        {
+          id: 1, painIntensity: 8, painType: '绞痛', periodDay: 1,
+          dateText: '2026-07-19 09:30', scene: 'home', sceneLabel: '居家',
+          symptoms: ['恶心', '冷汗', '腰酸'],
+        },
+        {
+          id: 2, painIntensity: 5, painType: '坠痛', periodDay: 2,
+          dateText: '2026-07-19 14:00', scene: 'office', sceneLabel: '办公室',
+          symptoms: ['乏力', '情绪低落'],
+        },
+        {
+          id: 3, painIntensity: 4, painType: '隐痛', periodDay: null,
+          dateText: '2026-07-15 20:00', scene: 'home', sceneLabel: '居家',
+          symptoms: ['腰酸'],
+        },
+        {
+          id: 4, painIntensity: 7, painType: '绞痛', periodDay: 1,
+          dateText: '2026-06-21 10:00', scene: 'home', sceneLabel: '居家',
+          symptoms: ['恶心', '呕吐', '腹泻'],
+        },
+        {
+          id: 5, painIntensity: 6, painType: '坠痛', periodDay: 2,
+          dateText: '2026-06-22 11:00', scene: 'office', sceneLabel: '办公室',
+          symptoms: ['头晕', '乏力'],
+        },
+      ];
+    },
+
+    // ===== 人体图点击（自由点击空白区域） =====
+    addPainDot(event) {
+      // 只处理 SVG 本身的点击（非子元素）
+      if (event.target !== event.currentTarget) return;
+      this._addDot(event, null);
+    },
+
+    // ===== 区域点击 =====
+    selectZone(zoneName, event) {
+      this._addDot(event, zoneName);
+    },
+
+    _addDot(event, zoneName) {
+      const svg = document.querySelector('.body-map-overlay');
+      const rect = svg.getBoundingClientRect();
+      const viewBox = svg.viewBox.baseVal;
+      const scaleX = viewBox.width / rect.width;
+      const scaleY = viewBox.height / rect.height;
+      const x = (event.clientX - rect.left) * scaleX;
+      const y = (event.clientY - rect.top) * scaleY;
+
+      const zoneLabels = {
+        'uterus': '子宫区', 'pelvic': '盆腔区', 'lumbar': '腰部', 'thigh': '大腿根部'
+      };
+
+      const intensity = this.newRecord.painIntensity <= 3 ? 'mild' : this.newRecord.painIntensity <= 6 ? 'moderate' : 'severe';
+      const label = zoneName ? zoneLabels[zoneName] : '自定义位置';
+
+      // 标记选中的区域
+      document.querySelectorAll('.click-zone').forEach(z => z.style.opacity = '1');
+      if (zoneName) {
+        this.hoveredZone = label;
+        const el = document.getElementById('zone-' + zoneName);
+        if (el) {
+          el.style.fill = 'rgba(232,145,156,0.35)';
+          el.style.strokeWidth = '2.5';
+        }
+      }
+
+      this.painDots.push({ x, y, intensity, zone: zoneName || 'custom', label });
+    },
+
+    clearPainDots() {
+      this.painDots = [];
+      this.hoveredZone = '';
+      document.querySelectorAll('.click-zone').forEach(z => {
+        z.style.fill = '';
+        z.style.strokeWidth = '1.5';
+      });
+    },
+
+    // ===== 症状切换 =====
+    toggleSymptom(symptom) {
+      const idx = this.newRecord.symptoms.indexOf(symptom);
+      if (idx > -1) {
+        this.newRecord.symptoms.splice(idx, 1);
+      } else {
+        this.newRecord.symptoms.push(symptom);
+      }
+    },
+
+    // ===== 保存记录 =====
+    saveRecord() {
+      if (this.painDots.length === 0) {
+        window.__toast?.('请先在人体图上标记疼痛位置');
+        return;
+      }
+      const now = new Date();
+      const record = {
+        id: Date.now(),
+        painIntensity: this.newRecord.painIntensity,
+        painType: this.newRecord.painType || '未选择',
+        periodDay: this.user.cyclePhase === 'menstrual' ? this.user.periodDay : null,
+        dateText: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,
+        scene: this.newRecord.scene,
+        sceneLabel: this.getSceneLabel(this.newRecord.scene),
+        symptoms: [...this.newRecord.symptoms],
+      };
+      this.painRecords.unshift(record);
+      this.painDots = [];
+      this.newRecord = { painIntensity: 5, painType: '绞痛', symptoms: [], scene: 'home' };
+      window.__toast?.('记录已保存');
+
+      // 如果强度 >= 7，弹提示
+      if (record.painIntensity >= 7) {
+        setTimeout(() => {
+          window.__toast?.('疼痛强度较高，是否需要 AI 舒缓方案？');
+        }, 2200);
+      }
+    },
+
+    // ===== AI 舒缓 =====
+    goRelief() {
+      this.showReliefModal = true;
+      this.reliefStep = 'scene';
+      this.reliefScene = '';
+    },
+
+    generateRelief() {
+      // 模拟 AI 生成延迟
+      setTimeout(() => {
+        const scene = this.reliefScene;
+        const intensity = this.newRecord.painIntensity;
+        const constitution = this.user.constitutionTag;
+
+        // 根据场景生成不同方案（模拟 AI 输出）
+        const baseActions = [
+          { name: '腹部热敷', desc: '将暖宝宝或热水袋置于下腹部，温度适宜不烫皮肤', duration: 15, area: '腹部' },
+          { name: '三阴交穴位按压', desc: '内踝尖上 4 横指处，拇指按压 30 秒/侧，交替进行', duration: 5, area: '腿部' },
+          { name: '腹式呼吸法', desc: '仰卧或坐直，手放腹部，鼻吸气 4 秒→屏息 2 秒→口呼气 6 秒，重复 10 次', duration: 8, area: '全身' },
+        ];
+
+        const sceneSpecific = {
+          'office': [
+            { name: '工位体位调整', desc: '在椅子上放靠垫，微微前倾，减轻盆腔压力。每隔 30 分钟起身活动 1 分钟', duration: 2, area: '坐姿' },
+            { name: '合谷穴按压', desc: '虎口处，拇指食指并拢时肌肉最高点，按压 1 分钟/手', duration: 3, area: '手部' },
+          ],
+          'home': [
+            { name: '婴儿式放松', desc: '跪坐，上身前倾趴在枕头上，手臂自然前伸，保持 3-5 分钟，缓解盆腔压力', duration: 5, area: '全身' },
+            { name: '猫牛式伸展', desc: '四点跪姿，吸气塌腰抬头，呼气拱背低头，缓慢重复 8-10 次', duration: 5, area: '腰背' },
+          ],
+          'commute': [
+            { name: '坐姿前倾', desc: '坐在座位上微微前倾，用手轻压下腹部，减轻颠簸带来的疼痛加剧', duration: 3, area: '坐姿' },
+            { name: '耳穴按压', desc: "耳廓中央「神门穴」，拇指按压 1 分钟，缓解疼痛和焦虑", duration: 2, area: '耳部' },
+          ],
+          'travel': [
+            { name: '暖贴随身', desc: '将暖贴贴在内衣靠近下腹部位置，持续发热 4-6 小时', duration: 1, area: '腹部' },
+            { name: '足三里按压', desc: '膝盖外侧下方 4 横指处，拇指按压 2 分钟/侧，调理气血', duration: 4, area: '腿部' },
+          ],
+        };
+
+        const actions = [...baseActions, ...(sceneSpecific[scene] || [])];
+        const totalMinutes = actions.reduce((sum, a) => sum + a.duration, 0);
+
+        const avoidBase = ['避免冷饮和生冷食物', '避免剧烈运动和腹部受压'];
+        if (intensity >= 7) avoidBase.push('疼痛剧烈时建议请假休息，不要硬扛');
+        if (constitution === '宫寒') avoidBase.push('避免空调直吹腹部，注意保暖');
+
+        this.reliefPlan = {
+          totalMinutes,
+          actions,
+          avoidItems: avoidBase,
+          timeSummary: `完成全套方案约 ${totalMinutes} 分钟，帮你夺回今天 ${Math.round(totalMinutes / 60 * 10) / 10} 小时`,
+        };
+        this.reliefStep = 'result';
+      }, 2000);
+    },
+
+    // ===== 就医报告生成 =====
+    generateReport() {
+      this.showReport = true;
+      this.generatingReport = true;
+      setTimeout(() => {
+        this.medicalReport = {
+          chiefComplaint: '进行性加重痛经 6 个月，经期疼痛强度 7-8 分，伴非经期盆腔隐痛 3 次。',
+          historySummary: '近 6 个月疼痛强度从 4.2 分上升至 7.5 分，呈进行性加重趋势。经期第 1-2 天为疼痛高峰，伴恶心、冷汗、腰酸。非经期出现 3 次盆腔隐痛，强度 3-4 分。',
+          medications: [
+            { name: '布洛芬', dosage: '400mg', frequency: '经期每日 2 次' },
+            { name: '红糖姜茶', dosage: '1 杯', frequency: '经期每日 1 次' },
+          ],
+          questions: [
+            '我的疼痛是否呈进行性加重趋势？需要进一步排查吗？',
+            '非经期盆腔痛是否与经期痛有关联？',
+            '目前用药方案是否需要调整？',
+            '日常生活中还有哪些需要注意的触发因素？',
+          ],
+          alertText: '疼痛强度 3 个月内从 4.2→7.5，呈进行性加重；非经期盆腔痛出现 3 次。建议关注并就医咨询，按医生指导进行相关检查。',
+        };
+        this.generatingReport = false;
+        this.$nextTick(() => this.renderReportChart());
+      }, 2000);
+    },
+
+    downloadReport() {
+      window.__toast?.('PDF 生成中（Demo 预览）');
+      setTimeout(() => window.__toast?.('就医报告已生成，可保存至微信或下载至本地'), 1500);
+    },
+
+    // ===== 图表渲染 =====
+    renderCharts() {
+      this.$nextTick(() => {
+        this.renderRingChart();
+        this.renderTrendChart();
+      });
+    },
+
+    renderRingChart() {
+      const el = document.getElementById('timeRingChart');
+      if (!el) return;
+      const chart = echarts.init(el);
+      chart.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c}h ({d}%)' },
+        legend: { show: false },
+        series: [{
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['50%', '50%'],
+          label: { show: true, formatter: '{b}\n{d}%', fontSize: 9, color: '#666' },
+          labelLine: { length: 8, length2: 8 },
+          data: this.timeBreakdownList.map(item => ({
+            value: item.hours,
+            name: item.name,
+            itemStyle: { color: item.color },
+          })),
+        }],
+      });
+    },
+
+    renderTrendChart() {
+      const el = document.getElementById('trendChart');
+      if (!el) return;
+      const chart = echarts.init(el);
+      chart.setOption({
+        tooltip: { trigger: 'axis' },
+        grid: { left: 30, right: 15, top: 15, bottom: 25 },
+        xAxis: {
+          type: 'category',
+          data: ['2月', '3月', '4月', '5月', '6月', '7月'],
+          axisLabel: { fontSize: 10, color: '#999' },
+          axisLine: { lineStyle: { color: '#eee' } },
+        },
+        yAxis: {
+          type: 'value',
+          min: 0, max: 10,
+          axisLabel: { fontSize: 10, color: '#999' },
+          splitLine: { lineStyle: { color: '#f0f0f0' } },
+        },
+        series: [{
+          data: [3.8, 4.2, 4.5, 5.1, 6.8, 7.5],
+          type: 'line',
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { color: '#E8919C', width: 3 },
+          itemStyle: { color: '#E8919C', borderColor: '#fff', borderWidth: 2 },
+          areaStyle: {
+            color: {
+              type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(232,145,156,0.3)' },
+                { offset: 1, color: 'rgba(232,145,156,0)' },
+              ],
+            },
+          },
+          markLine: {
+            silent: true,
+            data: [{ yAxis: 6.8, lineStyle: { color: '#E65555', type: 'dashed' }, label: { formatter: '个人基线', fontSize: 9 } }],
+          },
+        }],
+      });
+    },
+
+    renderReportChart() {
+      const el = document.getElementById('reportTrendChart');
+      if (!el) return;
+      const chart = echarts.init(el);
+      chart.setOption({
+        grid: { left: 25, right: 10, top: 10, bottom: 20 },
+        xAxis: { type: 'category', data: ['2月', '3月', '4月', '5月', '6月', '7月'], axisLabel: { fontSize: 8 } },
+        yAxis: { type: 'value', min: 0, max: 10, axisLabel: { fontSize: 8 } },
+        series: [{
+          data: [3.8, 4.2, 4.5, 5.1, 6.8, 7.5],
+          type: 'line', smooth: true,
+          lineStyle: { color: '#E65555', width: 2 },
+          itemStyle: { color: '#E65555' },
+          areaStyle: { color: 'rgba(230,85,85,0.15)' },
+        }],
+      });
+    },
+
+    // ===== 数据操作 =====
+    exportData() {
+      window.__toast?.('数据导出中...');
+      setTimeout(() => window.__toast?.('数据已导出（JSON 格式）'), 1000);
+    },
+
+    deleteAllData() {
+      if (confirm('确定删除全部数据？此操作不可撤销。')) {
+        this.painRecords = [];
+        this.showReport = false;
+        window.__toast?.('全部数据已删除');
+      }
+    },
+  };
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "miaoshu",
+  "version": "0.1.0",
+  "description": "喵舒 · 女性生命力养护湾 - 微信小程序",
+  "main": "app.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "mobx-miniprogram": "^4.13.2",
+    "mobx-miniprogram-bindings": "^2.1.5"
+  },
+  "keywords": [
+    "wechat-miniprogram",
+    "women-health",
+    "pain-tracking"
+  ],
+  "author": "Victorialee",
+  "license": "MIT"
+}

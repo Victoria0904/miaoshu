@@ -1,0 +1,46 @@
+.pain-slider-component {
+  padding: 16rpx 0;
+}
+
+.slider-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  font-size: 22rpx;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.slider {
+  flex: 1;
+  margin: 0 16rpx;
+}
+
+.value-display {
+  text-align: center;
+  margin-top: 12rpx;
+}
+
+.value {
+  font-size: 60rpx;
+  font-weight: 700;
+}
+
+.total {
+  font-size: 26rpx;
+  color: #999;
+  margin-left: 8rpx;
+}
+
+.desc {
+  display: block;
+  text-align: center;
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+.intensity-low { color: #67C23A; }
+.intensity-mid { color: #F0A04B; }
+.intensity-high { color: #E65555; }

@@ -1,0 +1,21 @@
+<view class="container">
+  <view class="login-box">
+    <text class="logo">🌸</text>
+    <text class="app-name">喵舒</text>
+    <text class="app-slogan">女性生命力养护湾</text>
+
+    <view class="privacy-box">
+      <checkbox checked="{{agreed}}" bindtap="toggleAgreement" />
+      <text class="privacy-text">
+        我已阅读并同意 <text class="link" bindtap="goPrivacy">《隐私协议》</text> 与 <text class="link" bindtap="goPrivacy">《用户协议》</text>
+      </text>
+    </view>
+
+    <button class="btn-primary {{!agreed ? 'btn-disabled' : ''}}" bindtap="onLogin">微信一键登录</button>
+  </view>
+
+  <view class="disclaimer">
+    本应用为 AI 辅助工具，非医疗诊断设备
+    所有建议仅供参考，最终决策权在用户和医生手中
+  </view>
+</view>

@@ -1,0 +1,82 @@
+<view class="container">
+  <!-- 顶部问候 -->
+  <view class="header">
+    <text class="date-text">2026年7月20日 · 周一</text>
+    <text class="greeting">你好，{{user.nickname}} </text>
+    <text class="cycle-info" wx:if="{{user.cyclePhase === 'menstrual'}}">
+      经期第 {{user.periodDay}} 天
+    </text>
+    <text class="cycle-info" wx:else>
+      黄体期 · 距下次月经约 {{daysToNextPeriod}} 天
+    </text>
+  </view>
+
+  <!-- 好看时间指标卡 -->
+  <view class="card beauty-time-card">
+    <view class="beauty-time-content">
+      <view>
+        <text class="beauty-label">本月被偷走的好看时间</text>
+        <view class="beauty-value-wrap">
+          <text class="beauty-value">{{reviewData.stolenBeautyHours}}</text>
+          <text class="beauty-unit">小时</text>
+        </view>
+        <text class="beauty-desc">相当于 {{stolenDays}} 天的自我养护被疼痛夺走</text>
+      </view>
+      <text class="beauty-icon">⏰</text>
+    </view>
+  </view>
+
+  <!-- 正在疼痛入口 -->
+  <view class="card relief-entry" bindtap="goRelief">
+    <view class="relief-text">
+      <text class="relief-title">正在疼痛？</text>
+      <text class="relief-desc">30 秒获取个性化舒缓方案</text>
+    </view>
+    <button class="relief-btn">立即舒缓 →</button>
+  </view>
+
+  <!-- 今日养护建议 -->
+  <view class="card tips-card">
+    <text class="section-title"> 今日养护建议</text>
+    <view class="tip-item" wx:for="{{todayTips}}" wx:key="index">
+      <text class="tip-icon">{{item.icon}}</text>
+      <view class="tip-content">
+        <text class="tip-title">{{item.title}}</text>
+        <text class="tip-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 近期疼痛记录 -->
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title"> 近期疼痛记录</text>
+      <text class="link-text" bindtap="switchTab" data-tab="record">查看全部 →</text>
+    </view>
+    <view class="recent-list">
+      <view class="recent-item" wx:for="{{recentRecords}}" wx:key="id" bindtap="viewRecord" data-id="{{item.id}}">
+        <view class="intensity-badge {{item.intensityClass}}">{{item.painIntensity}}</view>
+        <view class="recent-info">
+          <text class="recent-title">{{item.painType}} <text class="recent-sub">{{item.periodText}}</text></text>
+          <text class="recent-date">{{item.dateText}}</text>
+        </view>
+        <text class="arrow">›</text>
+      </view>
+      <view class="empty-recent" wx:if="{{recentRecords.length === 0}}">
+        暂无疼痛记录，点击「记录」开始记录
+      </view>
+    </view>
+  </view>
+
+  <!-- AI 就医导航提醒 -->
+  <view class="card alert-card" wx:if="{{showMedicalAlert}}">
+    <view class="alert-icon">🔔</view>
+    <view class="alert-content">
+      <text class="alert-title">AI 就医参考信号</text>
+      <text class="alert-desc">近 3 个月疼痛强度呈上升趋势（4.2 → 6.8 → 7.5），建议关注并就医咨询。</text>
+      <button class="alert-btn" bindtap="goReport">生成就医报告 →</button>
+    </view>
+  </view>
+
+  <view class="disclaimer">⚠️ AI 建议非医疗诊断，紧急情况请立即就医</view>
+</view>

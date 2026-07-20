@@ -1,0 +1,42 @@
+{
+  "description": "喵舒 · 女性生命力养护湾",
+  "packOptions": {
+    "ignore": [
+      { "type": "file", "value": ".eslintrc.json" },
+      { "type": "file", "value": ".env.example" },
+      { "type": "file", "value": "README.md" },
+      { "type": "file", "value": "package.json" }
+    ]
+  },
+  "setting": {
+    "bundle": false,
+    "userConfirmedBundleSwitch": false,
+    "urlCheck": true,
+    "scopeDataCheck": false,
+    "coverView": true,
+    "es6": true,
+    "postcss": true,
+    "compileHotReLoad": false,
+    "lazyloadPlaceholderEnable": false,
+    "preloadBackground": {
+      "network": "wifi",
+      "packages": []
+    },
+    "minified": true,
+    "autoPrefixCSS": true,
+    "babelSetting": {
+      "ignore": [],
+      "disableSWCPreset": false,
+      "outputPath": ""
+    }
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.0.0",
+  "appid": "touristappid",
+  "projectname": "miaoshu",
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}

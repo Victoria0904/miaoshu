@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+miniprogram_npm/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env

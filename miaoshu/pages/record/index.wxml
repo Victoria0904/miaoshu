@@ -1,0 +1,125 @@
+<view class="container">
+  <view class="header">
+    <text class="title">疼痛记录</text>
+    <text class="subtitle">点击人体图标记疼痛位置</text>
+  </view>
+
+  <!-- 人体图 -->
+  <view class="card">
+    <view class="card-title-wrap">
+      <text class="section-title"> 疼痛点位标记</text>
+      <text class="link-text" bindtap="clearPainDots">清除标记</text>
+    </view>
+
+    <view class="body-map-container">
+      <image class="body-map-bg" src="https://prd-tc-intl-cdn.codebanana.com/cb-user-uploads/9f0fa268-b23d-4be5-96f1-5e8e155b4236/assets/body_map_base_0.jpeg" mode="aspectFit"></image>
+      <canvas type="2d" id="bodyMapCanvas" class="body-map-canvas" bindtap="onCanvasTap"></canvas>
+    </view>
+
+    <view class="dot-list" wx:if="{{painDots.length > 0}}">
+      <view class="dot-item" wx:for="{{painDots}}" wx:key="index">
+        <view class="dot-badge {{item.intensityClass}}">🐾</view>
+        <text class="dot-label">{{item.label}}</text>
+        <picker class="dot-picker" data-index="{{index}}" value="{{item.intensity}}" range="{{intensityOptions}}" bindchange="onIntensityChange">
+          <text class="dot-intensity">{{item.intensityText}}</text>
+        </picker>
+        <text class="dot-remove" data-index="{{index}}" bindtap="removeDot">✕</text>
+      </view>
+    </view>
+    <text class="empty-tip" wx:if="{{painDots.length === 0}}">点击人体图标记疼痛位置</text>
+  </view>
+
+  <!-- VAS 滑块 -->
+  <view class="card">
+    <text class="section-title"> 疼痛强度（VAS 0-10）</text>
+    <view class="slider-wrap">
+      <text class="slider-label">无痛</text>
+      <slider class="pain-slider" min="0" max="10" step="1" value="{{painIntensity}}" bindchange="onIntensitySliderChange" show-value="{{false}}" />
+      <text class="slider-label">剧痛</text>
+    </view>
+    <view class="intensity-display">
+      <text class="intensity-number {{intensityClass}}">{{painIntensity}}</text>
+      <text class="intensity-total">/ 10</text>
+    </view>
+    <text class="intensity-desc {{intensityClass}}">{{intensityDesc}}</text>
+  </view>
+
+  <!-- 疼痛性质 -->
+  <view class="card">
+    <text class="section-title"> 疼痛性质</text>
+    <view class="tag-wrap">
+      <text class="tag {{painType === item ? 'tag-active' : 'tag-default'}}" wx:for="{{painTypes}}" wx:key="item" bindtap="selectPainType" data-type="{{item}}">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 伴随症状 -->
+  <view class="card">
+    <text class="section-title"> 伴随症状（多选）</text>
+    <view class="tag-wrap">
+      <text class="tag {{symptoms.includes(item) ? 'tag-active' : 'tag-default'}}" wx:for="{{symptomOptions}}" wx:key="item" bindtap="toggleSymptom" data-symptom="{{item}}">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 场景选择 -->
+  <view class="card">
+    <text class="section-title"> 当前场景</text>
+    <view class="tag-wrap">
+      <text class="tag {{scene === item.value ? 'tag-active' : 'tag-default'}}" wx:for="{{sceneOptions}}" wx:key="value" bindtap="selectScene" data-scene="{{item.value}}">{{item.label}}</text>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="save-wrap">
+    <button class="btn-primary" bindtap="saveRecord">保存记录</button>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title"> 疼痛记录</text>
+      <view class="view-switch">
+        <text class="view-option {{recordView === 'list' ? 'view-active' : ''}}" bindtap="switchView" data-view="list">列表</text>
+        <text class="view-option {{recordView === 'calendar' ? 'view-active' : ''}}" bindtap="switchView" data-view="calendar">日历</text>
+      </view>
+    </view>
+
+    <!-- 列表视图 -->
+    <view wx:if="{{recordView === 'list'}}" class="record-list">
+      <view class="record-item" wx:for="{{records}}" wx:key="id">
+        <view class="intensity-badge {{item.intensityClass}}">{{item.painIntensity}}</view>
+        <view class="record-info">
+          <text class="record-title">{{item.painType}} <text class="record-sub">{{item.periodText}}</text></text>
+          <text class="record-date">{{item.dateText}}</text>
+          <view class="symptom-wrap">
+            <text class="mini-tag" wx:for="{{item.symptoms}}" wx:key="*this">{{item}}</text>
+          </view>
+        </view>
+        <text class="scene-label">{{item.sceneLabel}}</text>
+      </view>
+    </view>
+
+    <!-- 日历视图 -->
+    <view wx:if="{{recordView === 'calendar'}}" class="calendar-view">
+      <view class="cal-nav">
+        <text class="cal-arrow" bindtap="calPrevMonth"></text>
+        <text class="cal-title">{{calYear}}年{{calMonth + 1}}月</text>
+        <text class="cal-arrow" bindtap="calNextMonth">›</text>
+      </view>
+      <view class="week-header">
+        <text wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this" class="week-day">{{item}}</text>
+      </view>
+      <view class="cal-grid">
+        <view class="cal-cell {{item.empty ? 'empty' : ''}} {{item.isPeriod ? 'period' : ''}} {{item.isToday ? 'today' : ''}}" wx:for="{{calendarDays}}" wx:key="key" bindtap="onDayClick" data-day="{{item}}">
+          <block wx:if="{{!item.empty}}">
+            <text class="cal-day {{item.isToday ? 'today-text' : ''}}">{{item.day}}</text>
+            <text wx:if="{{item.isPeriod}}" class="period-day">D{{item.periodDay}}</text>
+            <view wx:if="{{item.painIntensity > 0}}" class="pain-bar pain-{{item.painLevelClass}}"></view>
+            <view wx:if="{{item.painIntensity > 0 && !item.isPeriod}}" class="non-period-dot"></view>
+          </block>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="disclaimer">⚠️ AI 建议非医疗诊断，紧急情况请立即就医</view>
+</view>

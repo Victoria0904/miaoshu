@@ -1,0 +1,26 @@
+/* 公共 mixin 与工具类 */
+
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-2 { margin-top: 16rpx; }
+.mb-2 { margin-bottom: 16rpx; }
+.mr-2 { margin-right: 16rpx; }
+.ml-2 { margin-left: 16rpx; }

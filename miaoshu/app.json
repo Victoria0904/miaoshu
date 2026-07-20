@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/record/index",
+    "pages/relief/index",
+    "pages/review/index",
+    "pages/report/index",
+    "pages/profile/index",
+    "pages/auth/login",
+    "pages/auth/privacy"
+  ],
+  "tabBar": {
+    "custom": false,
+    "color": "#999999",
+    "selectedColor": "#E8919C",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "assets/icons/home.png",
+        "selectedIconPath": "assets/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/record/index",
+        "text": "记录",
+        "iconPath": "assets/icons/record.png",
+        "selectedIconPath": "assets/icons/record-active.png"
+      },
+      {
+        "pagePath": "pages/review/index",
+        "text": "复盘",
+        "iconPath": "assets/icons/review.png",
+        "selectedIconPath": "assets/icons/review-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/icons/profile.png",
+        "selectedIconPath": "assets/icons/profile-active.png"
+      }
+    ]
+  },
+  "window": {
+    "navigationBarTitleText": "喵舒",
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#FAF8F5",
+    "backgroundColor": "#FAF8F5"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

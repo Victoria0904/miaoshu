@@ -1,0 +1,12 @@
+page {
+  --color-primary: #E8919C;
+  --color-primary-light: #F5DDE2;
+  --color-danger: #E65555;
+  --color-warning: #F0A04B;
+  --color-success: #67C23A;
+  --color-bg: #FAF8F5;
+  --color-text: #333333;
+  --color-text-secondary: #999999;
+  --color-border: #EEEEEE;
+  --spacing-unit: 8rpx;
+}

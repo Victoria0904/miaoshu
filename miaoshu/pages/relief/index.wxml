@@ -1,0 +1,79 @@
+<view class="container">
+  <view class="header">
+    <text class="title">🤖 AI 疼痛舒缓</text>
+    <text class="subtitle">选择当前场景，30 秒生成个性化非药物舒缓方案</text>
+  </view>
+
+  <view class="card summary-card" wx:if="{{!generating && !reliefPlan.actions.length}}">
+    <view class="summary-row">
+      <text class="summary-label">当前疼痛</text>
+      <text class="summary-value {{intensityClass}}">{{painIntensity}} / 10 · {{painType}}</text>
+    </view>
+    <view class="summary-row">
+      <text class="summary-label">体质</text>
+      <text class="summary-value">{{constitutionTag}}</text>
+    </view>
+  </view>
+
+  <!-- 场景选择 -->
+  <view class="card" wx:if="{{step === 'scene'}}">
+    <text class="section-title"> 你现在在哪里？</text>
+    <view class="scene-grid">
+      <view class="scene-item {{selectedScene === item.value ? 'scene-active' : ''}}" wx:for="{{sceneOptions}}" wx:key="value" bindtap="selectScene" data-scene="{{item.value}}">
+        <text class="scene-icon">{{item.icon}}</text>
+        <text class="scene-label">{{item.label}}</text>
+      </view>
+    </view>
+    <button class="btn-primary {{!selectedScene ? 'btn-disabled' : ''}}" bindtap="generatePlan">生成舒缓方案</button>
+  </view>
+
+  <!-- 生成中 -->
+  <view class="card generating-card" wx:if="{{step === 'generating'}}">
+    <view class="robot-icon">🤖</view>
+    <text class="generating-title">正在生成个性化舒缓方案</text>
+    <text class="generating-sub">基于：强度 {{painIntensity}} · {{painType}} · {{sceneLabel}} · {{constitutionTag}}体质</text>
+    <view class="loading-dots">...</view>
+  </view>
+
+  <!-- 方案结果 -->
+  <view wx:if="{{step === 'result'}}">
+    <view class="card result-summary-card">
+      <text class="result-label">完成全套方案约需</text>
+      <view class="result-time-wrap">
+        <text class="result-time">{{reliefPlan.totalMinutes}}</text>
+        <text class="result-unit">分钟</text>
+      </view>
+      <text class="result-summary">{{reliefPlan.timeSummary}}</text>
+    </view>
+
+    <view class="card">
+      <text class="section-title"> 舒缓动作</text>
+      <view class="action-item" wx:for="{{reliefPlan.actions}}" wx:key="index">
+        <view class="action-header">
+          <text class="action-index">{{index + 1}}.</text>
+          <text class="action-name">{{item.name}}</text>
+          <text class="action-duration">{{item.duration}}min</text>
+        </view>
+        <text class="action-desc">{{item.desc}}</text>
+        <text class="action-area">部位：{{item.area}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">⚠️ 避免事项</text>
+      <text class="avoid-item" wx:for="{{reliefPlan.avoidItems}}" wx:key="index">• {{item}}</text>
+    </view>
+
+    <view class="card notice-card">
+      <text class="notice-text">
+        体质分类仅作为生活方式适配参考，不替代中医诊断。方案聚焦饮食/保暖/舒缓动作等生活调节，不涉及中药处方/针灸治疗。
+      </text>
+    </view>
+
+    <view class="save-wrap">
+      <button class="btn-primary" bindtap="finishRelief">完成，记录这次疼痛</button>
+    </view>
+  </view>
+
+  <view class="disclaimer">⚠️ AI 建议非医疗方案，紧急情况请立即就医</view>
+</view>

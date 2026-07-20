@@ -1,0 +1,6 @@
+# 微信小程序 tabBar 图标占位
+# 请准备 4 组图标（选中/未选中），尺寸 81x81px，格式 png
+# - home.png / home-active.png
+# - record.png / record-active.png
+# - review.png / review-active.png
+# - profile.png / profile-active.png

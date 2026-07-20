@@ -1,0 +1,71 @@
+<view class="container">
+  <view class="header">
+    <text class="title">生命力复盘</text>
+    <text class="subtitle">{{reviewData.month}} · 月度报告</text>
+  </view>
+
+  <!-- 被偷走的好看时间 -->
+  <view class="card beauty-card">
+    <text class="beauty-label">本月被偷走的好看时间</text>
+    <view class="beauty-value-wrap">
+      <text class="beauty-value">{{reviewData.stolenBeautyHours}}</text>
+      <text class="beauty-unit">h</text>
+    </view>
+    <text class="beauty-desc">相当于 {{stolenDays}} 天的自我养护时间被疼痛夺走</text>
+  </view>
+
+  <!-- 五种时间分布 -->
+  <view class="card">
+    <text class="section-title">⏳ 五种时间分布</text>
+    <text class="card-desc">本月因疼痛损失 <text class="highlight">{{reviewData.stolenBeautyHours}}</text> 小时好看时间，以下为剩余时间分布</text>
+    <canvas type="2d" id="timeRingChart" class="chart"></canvas>
+    <view class="breakdown-list">
+      <view class="breakdown-item" wx:for="{{reviewData.timeBreakdown}}" wx:key="key">
+        <view class="breakdown-left">
+          <view class="breakdown-color" style="background: {{item.color}};"></view>
+          <text class="breakdown-name">{{item.icon}} {{item.name}}</text>
+        </view>
+        <view class="breakdown-right">
+          <text class="breakdown-hours">{{item.hours}}h</text>
+          <text class="breakdown-percent">({{item.percent}}%)</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 疼痛趋势曲线 -->
+  <view class="card">
+    <text class="section-title"> 疼痛强度月度趋势</text>
+    <canvas type="2d" id="trendChart" class="chart"></canvas>
+    <view class="trend-summary">
+      <text class="trend-text"> 平均疼痛强度：<text class="trend-num">{{reviewData.avgIntensity}}</text> / 10</text>
+      <text class="trend-text"> 疼痛发作次数：<text class="trend-num">{{reviewData.painCount}}</text> 次</text>
+      <text class="trend-alert" wx:if="{{reviewData.trendUp}}"> 疼痛强度较上月上升 {{reviewData.trendDelta}}，建议关注</text>
+    </view>
+  </view>
+
+  <!-- AI 减损建议 -->
+  <view class="card suggestion-card">
+    <text class="section-title">🤖 AI 减损建议</text>
+    <view class="suggestion-list">
+      <view class="suggestion-item" wx:for="{{reviewData.aiSuggestions}}" wx:key="index">
+        <text class="suggestion-dot">•</text>
+        <text class="suggestion-text">{{item}}</text>
+      </view>
+    </view>
+    <text class="suggestion-notice"> 建议基于个人记录数据推算，非医疗建议</text>
+  </view>
+
+  <!-- 计算逻辑说明 -->
+  <view class="card">
+    <text class="section-title"> 五种时间计算逻辑</text>
+    <view class="logic-list">
+      <text class="logic-item">• 痛经请假/效率下降 → 侵占赚钱时间</text>
+      <text class="logic-item">• 取消社交/运动 → 侵占好玩时间和好看时间</text>
+      <text class="logic-item">• 无法专注深度工作 → 侵占心流时间</text>
+      <text class="logic-item">• 疼痛发作被动休息 → 侵占生存时间</text>
+    </view>
+  </view>
+
+  <view class="disclaimer">⚠️ AI 建议非医疗诊断，紧急情况请立即就医</view>
+</view>

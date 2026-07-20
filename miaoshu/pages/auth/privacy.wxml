@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="card">
+    <text class="title">隐私协议</text>
+    <view class="content">
+      <text class="p"><b>1. 数据存储</b>：您的疼痛记录数据经加密后存储于云端数据库，仅您本人可访问（行级安全策略 RLS）。</text>
+      <text class="p"><b>2. AI 调用脱敏</b>：调用 AI API 前，系统会对敏感信息（姓名、手机号等）进行脱敏处理，不传输给第三方模型服务。</text>
+      <text class="p"><b>3. 数据授权</b>：您可随时导出全部数据（JSON 格式），或一键删除账户及全部关联数据。</text>
+      <text class="p"><b>4. 非医疗诊断</b>：本应用为 AI 辅助工具，所有建议仅供参考，不构成医疗诊断或治疗建议。</text>
+      <text class="p"><b>5. 合规声明</b>：遵循《个人信息保护法》及医疗数据相关法规。</text>
+    </view>
+    <button class="btn-primary" bindtap="agree">我已阅读并同意</button>
+  </view>
+</view>

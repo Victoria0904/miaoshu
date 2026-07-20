@@ -1,0 +1,104 @@
+<view class="container">
+  <view class="header">
+    <text class="title">我的</text>
+  </view>
+
+  <!-- 用户信息卡 -->
+  <view class="card user-card">
+    <view class="avatar">🌸</view>
+    <view class="user-info">
+      <text class="nickname">{{user.nickname}}</text>
+      <text class="user-meta">年龄段：{{user.ageRange}} · 体质：{{user.constitutionTag}}</text>
+      <text class="user-meta">经期周期：{{user.cycleLength}}天 / {{user.periodLength}}天</text>
+    </view>
+  </view>
+
+  <!-- 就医报告 -->
+  <view class="card">
+    <view class="card-title-wrap">
+      <text class="section-title"> 就医报告导出</text>
+      <text class="tag-notice">辅助记录·非诊断</text>
+    </view>
+
+    <block wx:if="{{!showReport}}">
+      <text class="report-desc">生成结构化就医报告，帮医生 30 秒看懂你的疼痛全貌。</text>
+      <button class="btn-primary" bindtap="generateReport">生成就医报告</button>
+    </block>
+
+    <block wx:if="{{showReport && generating}}">
+      <view class="generating-box">
+        <text class="robot">🤖</text>
+        <text class="generating-text">AI 正在整理您的疼痛数据...</text>
+      </view>
+    </block>
+
+    <block wx:if="{{showReport && !generating}}">
+      <view class="report-section">
+        <text class="report-label">【主诉】</text>
+        <text class="report-content">{{medicalReport.chiefComplaint}}</text>
+      </view>
+      <view class="report-section">
+        <text class="report-label">【现病史摘要】</text>
+        <text class="report-content">{{medicalReport.historySummary}}</text>
+      </view>
+      <view class="report-section">
+        <text class="report-label">【疼痛强度变化】</text>
+        <canvas type="2d" id="reportTrendChart" class="report-chart"></canvas>
+      </view>
+      <view class="report-section">
+        <text class="report-label">【用药记录】</text>
+        <text class="report-content" wx:for="{{medicalReport.medications}}" wx:key="index">• {{item.name}}：{{item.dosage}}，{{item.frequency}}</text>
+      </view>
+      <view class="report-section alert-section">
+        <text class="report-label">【需关注的疼痛变化】</text>
+        <text class="report-content">{{medicalReport.alertText}}</text>
+      </view>
+      <button class="btn-primary" bindtap="downloadReport"> 下载 / 保存报告</button>
+    </block>
+  </view>
+
+  <!-- 统计概览 -->
+  <view class="card">
+    <text class="section-title"> 我的疼痛统计</text>
+    <view class="stats-grid">
+      <view class="stats-item">
+        <text class="stats-value">{{recordCount}}</text>
+        <text class="stats-label">总记录数</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-value text-danger">{{avgIntensity}}</text>
+        <text class="stats-label">平均疼痛强度</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-value text-warning">{{stolenHours}}</text>
+        <text class="stats-label">被偷走的好看时间(h)</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-value text-success">{{reviewData.painCount}}</text>
+        <text class="stats-label">本月疼痛发作</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 隐私与数据 -->
+  <view class="card">
+    <text class="section-title"> 隐私与数据</text>
+    <view class="menu-item" bindtap="showPrivacy">
+      <text>查看隐私协议</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="exportData">
+      <text>导出我的数据</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item danger" bindtap="deleteData">
+      <text>删除全部数据</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <view class="disclaimer">
+    本应用为 AI 辅助工具，非医疗诊断设备
+    所有建议仅供参考，最终决策权在用户和医生手中
+  </view>
+</view>

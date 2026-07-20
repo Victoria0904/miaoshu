@@ -1,0 +1,12 @@
+<view class="pain-slider-component">
+  <view class="slider-wrap">
+    <text class="label">无痛</text>
+    <slider class="slider" min="{{min}}" max="{{max}}" step="{{step}}" value="{{value}}" bindchange="onChange" activeColor="{{activeColor}}" backgroundColor="{{backgroundColor}}" />
+    <text class="label">剧痛</text>
+  </view>
+  <view class="value-display">
+    <text class="value {{intensityClass}}">{{value}}</text>
+    <text class="total">/ {{max}}</text>
+  </view>
+  <text class="desc {{intensityClass}}">{{desc}}</text>
+</view>
