@@ -4,7 +4,6 @@
     "pages/record/index",
     "pages/relief/index",
     "pages/review/index",
-    "pages/report/index",
     "pages/profile/index",
     "pages/auth/login",
     "pages/auth/privacy"

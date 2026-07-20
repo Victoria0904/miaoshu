@@ -32,7 +32,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.0.0",
-  "appid": "touristappid",
+  "appid": "wx...your_appid_here",
   "projectname": "miaoshu",
   "condition": {},
   "editorSetting": {
