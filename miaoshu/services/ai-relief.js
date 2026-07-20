@@ -1,4 +1,5 @@
 import { USE_MOCK, mockReliefPlans } from './mock-data';
+import { getConfig } from '../utils/env';
 
 export async function generateReliefPlan({ intensity, painType, scene, constitution }) {
   if (USE_MOCK) {
@@ -7,42 +8,42 @@ export async function generateReliefPlan({ intensity, painType, scene, constitut
     return plan;
   }
 
-  // 真实 AI 调用（SSE）
-  const response = await callLLM({ intensity, painType, scene, constitution });
-  return response;
+  // 真实环境：调用 Supabase Edge Function ai-proxy
+  const config = getConfig();
+  const response = await fetch(`${config.SUPABASE_URL}/functions/v1/ai-proxy`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ intensity, painType, scene, constitution }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI proxy failed: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  // 根据模型返回结构解析，这里假设 data.choices[0].message.content 为 JSON 字符串
+  const content = data.choices?.[0]?.message?.content || data.content || JSON.stringify(data);
+  try {
+    const parsed = JSON.parse(content);
+    return {
+      totalMinutes: parsed.totalMinutes || 0,
+      actions: parsed.actions || [],
+      avoidItems: parsed.avoid_items || parsed.avoidItems || [],
+      timeSummary: parsed.time_summary || parsed.timeSummary || '',
+    };
+  } catch (e) {
+    return {
+      totalMinutes: 15,
+      actions: [{ name: 'AI 返回结果', desc: content, duration: 15, area: '全身' }],
+      avoidItems: [],
+      timeSummary: '',
+    };
+  }
 }
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function callLLM(params) {
-  // TODO: 接入真实 LLM API（GLM-5.2 / Kimi K2.7）
-  const { AI_API_KEY, AI_API_ENDPOINT } = getApp().globalData.config || {};
-  return fetch(`${AI_API_ENDPOINT}/chat/completions`, {
-    method: 'POST',
-    header: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${AI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'glm-5.2',
-      stream: true,
-      messages: buildPrompt(params),
-    }),
-  });
-}
-
-function buildPrompt({ intensity, painType, scene, constitution }) {
-  return [
-    {
-      role: 'system',
-      content:
-        '你是喵舒·女性生命力养护湾的 AI 疼痛舒缓助手。你提供的是生活调节建议（非药物、非医疗方案），聚焦保暖、舒缓动作、呼吸法、姿势调整等。你不能诊断疾病、不能推荐药物或检查。输出必须是结构化的 JSON，包含 actions、avoid_items、time_summary 字段。',
-    },
-    {
-      role: 'user',
-      content: `疼痛强度：${intensity}/10，性质：${painType}，场景：${scene}，体质：${constitution}。请生成分钟级舒缓方案。`,
-    },
-  ];
 }

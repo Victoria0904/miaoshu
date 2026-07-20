@@ -1,18 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
+import { getConfig } from '../utils/env';
 
-// 从环境变量/全局配置中获取
-const { SUPABASE_URL, SUPABASE_ANON_KEY } = getApp().globalData.config || {};
+const config = getConfig();
 
 export const supabase = createClient(
-  SUPABASE_URL || 'https://arujfjeshqvxyxbivknu.supabase.co',
-  SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFydWpmamVzaHF2eHl4Yml2a251Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1NDAxNTYsImV4cCI6MjEwMDExNjE1Nn0.gvwjYw-w1ZG_SWpeXs76FwkJf7cXI50rcV8TwstBMPk'
+  config.SUPABASE_URL,
+  config.SUPABASE_ANON_KEY
 );
+
+export function getSupabaseClient() {
+  return supabase;
+}
 
 // 用户档案相关
 export async function upsertProfile(profile) {
   const { data, error } = await supabase
-    .from('profiles")
-    .upsert(profile, { onConflict: "openid" })
+    .from('profiles')
+    .upsert(profile, { onConflict: 'openid' })
     .select();
   if (error) throw error;
   return data[0];

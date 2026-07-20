@@ -1,10 +1,12 @@
 import { userStore } from './store/index';
 import { initMockData } from './services/mock-data';
+import { getConfig } from './utils/env';
 
 App({
   globalData: {
     userInfo: null,
     systemInfo: null,
+    config: getConfig(),
   },
 
   onLaunch() {
