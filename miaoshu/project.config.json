@@ -5,6 +5,7 @@
       { "type": "file", "value": ".eslintrc.json" },
       { "type": "file", "value": ".env.example" },
       { "type": "file", "value": "README.md" },
+      { "type": "file", "value": "DEPLOYMENT.md" },
       { "type": "file", "value": "package.json" }
     ]
   },
