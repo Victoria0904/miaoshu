@@ -7,8 +7,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "mobx-miniprogram": "^4.13.2",
-    "mobx-miniprogram-bindings": "^2.1.5"
+    "@supabase/supabase-js": "^2.110.7",
+    "mobx-miniprogram": "^4.0.0",
+    "mobx-miniprogram-bindings": "^2.1.0"
   },
   "keywords": [
     "wechat-miniprogram",
