@@ -7,19 +7,24 @@
 1. 访问 [微信公众平台](https://mp.weixin.qq.com/)
 2. 注册小程序账号（个人或企业主体）
 3. 登录后进入 **开发 → 开发管理 → 开发设置**
-4. 复制 **AppID(小程序ID)**，例如：`wx2d64dfe82b80b24b`
+4. 复制 **AppID(小程序ID)**
 
-> 当前项目已配置 AppID：`wx2d64dfe82b80b24b`
+> 注意：为保护隐私，远程仓库中不保存真实 AppID。请在本地 `project.config.json` 和 `.env` 中填入你自己的真实 AppID。
 
 ### 2. 配置项目 AppID
 
-当前 `project.config.json` 中已配置：
+默认使用测试号 `touristappid`：
 
 ```json
 {
-  "appid": "wx2d64dfe82b80b24b"
+  "appid": "touristappid"
 }
 ```
+
+真机调试前，请在微信开发者工具中：
+
+1. 打开项目，点击右上角 **详情 → 基本信息**
+2. 将 **AppID** 从 `touristappid` 替换为你自己的真实 AppID
 
 如 AppID 变更，可在微信开发者工具中：
 
@@ -46,7 +51,7 @@
 ```javascript
 SUPABASE_URL: 'https://cwrthbjlmthddeljgnqg.supabase.co',
 SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_MIFbTMMeLaWyA2FouPG_5Q_Jm17d2-B',
-WECHAT_APP_ID: 'wx2d64dfe82b80b24b',
+WECHAT_APP_ID: 'touristappid',
 ```
 
 如需本地覆盖，可复制 `.env.example` 为 `.env`，填入：
@@ -60,7 +65,7 @@ AI_API_KEY=your_ai_api_key_here
 AI_API_ENDPOINT=https://open.bigmodel.cn/api/paas/v4/chat/completions
 AI_MODEL=glm-5.2
 
-WECHAT_APP_ID=wx2d64dfe82b80b24b
+WECHAT_APP_ID=your_wechat_appid_here
 ```
 
 ### 5. 真机调试步骤

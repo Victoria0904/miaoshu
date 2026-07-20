@@ -10,7 +10,8 @@ const DEFAULT_CONFIG = {
   SUPABASE_ANON_KEY: '',
   AI_API_ENDPOINT: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
   AI_MODEL: 'glm-5.2',
-  WECHAT_APP_ID: 'wx2d64dfe82b80b24b',
+  // 微信小程序 AppID，请替换为你自己的真实 AppID
+  WECHAT_APP_ID: 'touristappid',
 };
 
 export function getConfig() {

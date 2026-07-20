@@ -41,9 +41,11 @@ miaoshu/
 ## 本地开发
 
 1. 用微信开发者工具打开 `miaoshu/` 目录
-2. 填入小程序 AppID（或使用测试号）
+2. 填入你自己的真实小程序 AppID（或先用测试号 `touristappid`）
 3. 安装依赖：`npm install`
 4. 点击「编译」预览
+
+> 为保护隐私，远程仓库中不保存真实 AppID。请在本地 `miaoshu/project.config.json` 和 `.env` 中配置。
 
 ## 环境变量
 
