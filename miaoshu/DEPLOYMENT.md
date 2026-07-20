@@ -7,46 +7,26 @@
 1. 访问 [微信公众平台](https://mp.weixin.qq.com/)
 2. 注册小程序账号（个人或企业主体）
 3. 登录后进入 **开发 → 开发管理 → 开发设置**
-4. 复制 **AppID(小程序ID)**，例如：`wx1234567890abcdef`
+4. 复制 **AppID(小程序ID)**，例如：`wx2d64dfe82b80b24b`
+
+> 当前项目已配置 AppID：`wx2d64dfe82b80b24b`
 
 ### 2. 配置项目 AppID
 
-#### 方式 A：微信开发者工具中设置
-
-1. 打开微信开发者工具
-2. 导入项目，选择 `miaoshu/` 目录
-3. 点击右上角 **详情 → 基本信息**
-4. 在 **AppID** 一栏填入你的真实 AppID
-
-#### 方式 B：修改配置文件
-
-编辑 `miaoshu/project.config.json`：
+当前 `project.config.json` 中已配置：
 
 ```json
 {
-  "appid": "wx1234567890abcdef"
+  "appid": "wx2d64dfe82b80b24b"
 }
 ```
 
-### 3. 配置环境变量
+如 AppID 变更，可在微信开发者工具中：
 
-复制 `.env.example` 为 `.env`，填入真实配置：
+1. 打开项目，点击右上角 **详情 → 基本信息**
+2. 在 **AppID** 一栏填入新的 AppID
 
-```bash
-SUPABASE_URL=https://cwrthbjlmthddeljgnqg.supabase.co
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_MIFbTMMeLaWyA2FouPG_5Q_Jm17d2-B
-SUPABASE_ANON_KEY=
-
-AI_API_KEY=your_ai_api_key_here
-AI_API_ENDPOINT=https://open.bigmodel.cn/api/paas/v4/chat/completions
-AI_MODEL=glm-5.2
-
-WECHAT_APP_ID=wx1234567890abcdef
-```
-
-> 注意：微信小程序运行时无法读取 `.env` 文件，需要在 `utils/env.js` 中同步配置，或通过 CI/CD 注入。
-
-### 4. 配置服务器域名
+### 3. 配置服务器域名
 
 小程序所有网络请求必须在 **微信小程序后台 → 开发 → 开发管理 → 服务器域名** 中配置：
 
@@ -58,6 +38,30 @@ WECHAT_APP_ID=wx1234567890abcdef
 | downloadFile | `https://cwrthbjlmthddeljgnqg.supabase.co` | 文件下载 |
 
 如果走 Edge Function，只需要配置 Supabase 域名即可。
+
+### 4. 配置环境变量
+
+当前项目已内置配置：
+
+```javascript
+SUPABASE_URL: 'https://cwrthbjlmthddeljgnqg.supabase.co',
+SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_MIFbTMMeLaWyA2FouPG_5Q_Jm17d2-B',
+WECHAT_APP_ID: 'wx2d64dfe82b80b24b',
+```
+
+如需本地覆盖，可复制 `.env.example` 为 `.env`，填入：
+
+```bash
+SUPABASE_URL=https://cwrthbjlmthddeljgnqg.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_MIFbTMMeLaWyA2FouPG_5Q_Jm17d2-B
+SUPABASE_ANON_KEY=
+
+AI_API_KEY=your_ai_api_key_here
+AI_API_ENDPOINT=https://open.bigmodel.cn/api/paas/v4/chat/completions
+AI_MODEL=glm-5.2
+
+WECHAT_APP_ID=wx2d64dfe82b80b24b
+```
 
 ### 5. 真机调试步骤
 
