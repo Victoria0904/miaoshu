@@ -2,10 +2,6 @@
 
 > 面向进行性加重痛经女性的 AI 疼痛评估与就医导航工具
 
-[![Platform](https://img.shields.io/badge/platform-微信小程序-green)]()
-[![Status](https://img.shields.io/badge/status-MVP%20开发中-orange)]()
-[![Version](https://img.shields.io/badge/PRD-v3.0-blue)]()
-
 ---
 
 ## 项目简介
