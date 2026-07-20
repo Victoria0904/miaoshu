@@ -14,7 +14,7 @@ export async function generateReliefPlan({ intensity, painType, scene, constitut
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.SUPABASE_ANON_KEY}`,
+      Authorization: `Bearer ${config.SUPABASE_PUBLISHABLE_KEY}`,
     },
     body: JSON.stringify({ intensity, painType, scene, constitution }),
   });
