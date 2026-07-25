@@ -1663,16 +1663,15 @@
                   <path d="M12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14Z" fill="currentColor"/>
                   <path d="M17 11C17 13.76 14.76 16 12 16C9.24 16 7 13.76 7 11M12 20V18M5 11H7M17 11H19M12 22C16.42 22 20 18.42 20 14V11H4V14C4 18.42 7.58 22 12 22Z" fill="currentColor"/>
                 </svg>
-                <div x-show="voiceFlowRecording" style="position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; background: #ff4d4f; border-radius: 50%; animation: pulse 1s infinite;"></div>
               </button>
-              <p class="text-xs text-gray-400 mt-2" x-text="voiceFlowRecording ? '松开后发送' : (asrStatus === 'processing' ? '正在识别…' : '按住继续补充')"></p>
+              <p class="text-xs text-gray-400 mt-2" x-text="voiceFlowRecording ? '正在聆听…' : (asrStatus === 'processing' ? '正在识别…' : '按住继续补充')"></p>
 
               <!-- 文字输入兜底 -->
               <div class="mt-3 flex gap-2 w-full px-4">
                 <input type="text" x-model="voiceTextInput" placeholder="或直接输入…" class="flex-1 px-3 py-2 rounded-full text-sm border border-gray-200 bg-white" style="outline: none;" @keydown.enter="submitVoiceText()">
                 <button class="px-3 py-2 rounded-full text-white text-sm font-bold" style="background: var(--color-primary);" @click="submitVoiceText()">发送</button>
               </div>
-              <p class="text-xs text-gray-300 mt-1">Web Speech API 实时识别，大陆网络可自动降级腾讯云 ASR</p>
+              <p class="text-xs text-gray-300 mt-1">Demo 中语音为模拟输入，可直接打字体验不同动线</p>
             </div>
           </template>
 
@@ -1870,7 +1869,6 @@ function miaoshuApp() {
     voiceSession: null,
     showVoiceModal: false,
     voiceFlowRecording: false,
-    asrStatus: 'idle', // idle | listening | processing
     voiceQuickFill: {
       painIntensity: 5,
       painType: '绞痛',
@@ -2556,10 +2554,14 @@ function miaoshuApp() {
       };
     },
 
-    // 语音识别配置与状态：仅使用腾讯 ASR，稳定可靠
+    // 语音识别配置
+    // 路演优先使用浏览器原生 Web Speech API（Chrome/Edge 零延迟）
+    // 若不可用则降级到腾讯云 ASR 后端代理
+    useWebSpeechAPI: true,
     asrProxyUrl: '/api/asr',
-    maxRecordingDuration: 12000,
+    maxRecordingDuration: 35000, // 录音最大时长 35 秒
     recordingTimer: null,
+    asrStatus: 'idle', // idle | listening | processing
 
     // 调用后端代理的一句话识别接口
     async recognizeTencentASR(audioDataBase64, voiceFormat = 'wav') {
@@ -2573,15 +2575,82 @@ function miaoshuApp() {
         throw new Error(json.error || 'ASR 代理请求失败');
       }
       if (json.Response && json.Response.Error) {
-        throw new Error(json.Response.Error.Message || JSON.stringify(json.Response.Error));
+        throw new Error(json.Response.Error.Message);
       }
-      if (json.Response && json.Response.Result !== undefined) {
-        return json.Response.Result;
-      }
-      throw new Error('ASR 返回结果为空');
+      return json.Response?.Result || '';
     },
 
-    // 录音与 ASR（统一使用腾讯 ASR）
+    // 浏览器原生 Web Speech API（零延迟，适合路演；大陆网络不可用则自动降级）
+    async recognizeByWebSpeech() {
+      return new Promise((resolve, reject) => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          reject(new Error('当前浏览器不支持 Web Speech API'));
+          return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+        recognition.continuous = true;
+
+        let finalTranscript = '';
+        let hasResult = false;
+        let started = false;
+        let timer = null;
+
+        recognition.onstart = () => { started = true; };
+
+        recognition.onresult = (event) => {
+          hasResult = true;
+          let interim = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interim += transcript;
+            }
+          }
+          if (interim) window.__toast?.('识别中：' + interim);
+        };
+
+        recognition.onerror = (event) => {
+          clearTimeout(timer);
+          if (!hasResult && finalTranscript === '') {
+            reject(new Error('Web Speech 未识别到内容：' + event.error));
+          } else {
+            resolve(finalTranscript);
+          }
+        };
+
+        recognition.onend = () => {
+          clearTimeout(timer);
+          if (!started) {
+            reject(new Error('Web Speech 未能启动'));
+          } else {
+            resolve(finalTranscript);
+          }
+        };
+
+        // 3 秒超时保护
+        timer = setTimeout(() => {
+          try { recognition.stop(); } catch (e) {}
+          if (!hasResult && finalTranscript === '') {
+            reject(new Error('Web Speech 超时'));
+          }
+        }, 3000);
+
+        // 最长录音限制
+        setTimeout(() => {
+          try { recognition.stop(); } catch (e) {}
+        }, this.maxRecordingDuration);
+
+        recognition.start();
+      });
+    },
+
+    // 传统录音（Web Audio API），用于腾讯云 ASR fallback
     audioRecorder: null,
     audioStream: null,
     audioContext: null,
@@ -2591,24 +2660,6 @@ function miaoshuApp() {
         window.__toast?.('当前环境不支持录音');
         return;
       }
-      // 优先使用 MediaRecorder 录制，兼容性更好、延迟更低
-      if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
-        this.audioStream = await navigator.mediaDevices.getUserMedia({ audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-        }});
-        const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : (MediaRecorder.isTypeSupported('audio/webm;codecs=pcm') ? 'audio/webm;codecs=pcm' : 'audio/webm');
-        const mediaRecorder = new MediaRecorder(this.audioStream, { mimeType });
-        const chunks = [];
-        mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-        return new Promise((resolve) => {
-          mediaRecorder.onstart = () => { this.audioRecorder = { type: 'media', mediaRecorder, chunks, startTime: Date.now() }; resolve(); };
-          mediaRecorder.start(100);
-        });
-      }
-      // 降级到 ScriptProcessor 手动采集
       this.audioChunks = [];
       this.audioStream = await navigator.mediaDevices.getUserMedia({ audio: {
         sampleRate: 16000,
@@ -2625,50 +2676,37 @@ function miaoshuApp() {
       };
       source.connect(processor);
       processor.connect(this.audioContext.destination);
-      this.audioRecorder = { type: 'script', source, processor, chunks, startTime: Date.now() };
+      this.audioRecorder = { source, processor, chunks, startTime: Date.now() };
     },
 
     stopRealRecording() {
       if (!this.audioRecorder) return;
-      const recorder = this.audioRecorder;
+      const { source, processor, chunks } = this.audioRecorder;
+      if (source) source.disconnect();
+      if (processor) processor.disconnect();
+      if (this.audioStream) this.audioStream.getTracks().forEach(t => t.stop());
+      if (this.audioContext && this.audioContext.state !== 'closed') this.audioContext.close();
       this.audioRecorder = null;
-
-      const finalize = async () => {
-        if (recorder.type === 'media') {
-          const { chunks } = recorder;
-          const mimeType = chunks[0]?.type || 'audio/wav';
-          const blob = new Blob(chunks, { type: mimeType });
-          return { blob, mimeType };
-        }
-        const { source, processor, chunks } = recorder;
-        if (source) source.disconnect();
-        if (processor) processor.disconnect();
-        const pcm = this.mergeFloat32Arrays(chunks);
-        const wavBlob = this.pcmToWav(pcm, 16000, 1);
-        return { blob: wavBlob, mimeType: 'audio/wav' };
-      };
-
-      const stopMedia = () => {
-        if (recorder.type === 'media' && recorder.mediaRecorder && recorder.mediaRecorder.state !== 'inactive') {
-          try { recorder.mediaRecorder.stop(); } catch (e) {}
-        }
-        if (this.audioStream) this.audioStream.getTracks().forEach(t => t.stop());
-        if (this.audioContext && this.audioContext.state !== 'closed') this.audioContext.close();
-      };
-
-      stopMedia();
       this.asrStatus = 'processing';
       window.__toast?.('正在识别…');
-
-      finalize().then(({ blob }) => this.blobToBase64(blob).then(base64 => this.recognizeTencentASR(base64, 'wav'))).then((text) => {
+      try {
+        const pcm = this.mergeFloat32Arrays(chunks);
+        const wavBlob = this.pcmToWav(pcm, 16000, 1);
+        this.blobToBase64(wavBlob).then(base64 => this.recognizeTencentASR(base64, 'wav')).then((text) => {
+          this.asrStatus = 'idle';
+          this.processVoiceTurn(text || '（未识别到内容）');
+        }).catch((err) => {
+          this.asrStatus = 'idle';
+          console.error('ASR 识别失败:', err);
+          window.__toast?.('语音转文字失败：' + (err.message || '未知错误'));
+          this.processVoiceTurn('我肚子疼');
+        });
+      } catch (err) {
         this.asrStatus = 'idle';
-        this.processVoiceTurn(text || '（未识别到内容）');
-      }).catch((err) => {
-        this.asrStatus = 'idle';
-        console.error('ASR 识别失败:', err);
-        window.__toast?.('语音转文字失败：' + (err.message || '未知错误'));
+        console.error('录音处理失败:', err);
+        window.__toast?.('录音处理失败：' + (err.message || '未知错误'));
         this.processVoiceTurn('我肚子疼');
-      });
+      }
     },
 
     mergeFloat32Arrays(chunks) {
@@ -2729,6 +2767,11 @@ function miaoshuApp() {
       }
       this.voiceFlowRecording = true;
       this.asrStatus = 'listening';
+      if (this.useWebSpeechAPI && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
+        // Web Speech API 自动管理麦克风
+        this.recordingTimer = setTimeout(() => this.stopVoiceFlow(), this.maxRecordingDuration);
+        return;
+      }
       this.startRealRecording();
       this.recordingTimer = setTimeout(() => this.stopVoiceFlow(), this.maxRecordingDuration);
     },
@@ -2746,6 +2789,22 @@ function miaoshuApp() {
         this.showVoiceModal = true;
       }
 
+      if (this.useWebSpeechAPI && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
+        this.asrStatus = 'processing';
+        window.__toast?.('正在识别…');
+        this.recognizeByWebSpeech().then((text) => {
+          this.asrStatus = 'idle';
+          this.processVoiceTurn(text || '（未识别到内容）');
+        }).catch((err) => {
+          console.error('Web Speech 失败，降级到腾讯云 ASR:', err);
+          this.useWebSpeechAPI = false;
+          this.asrStatus = 'idle';
+          window.__toast?.('本地识别不可用，请重试');
+          this.processVoiceTurn('我肚子疼');
+        });
+        return;
+      }
+
       this.stopRealRecording();
     },
 
@@ -2753,6 +2812,10 @@ function miaoshuApp() {
     startVoiceFlowTurn() {
       this.voiceFlowRecording = true;
       this.asrStatus = 'listening';
+      if (this.useWebSpeechAPI && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
+        this.recordingTimer = setTimeout(() => this.stopVoiceFlowTurn(), this.maxRecordingDuration);
+        return;
+      }
       this.startRealRecording();
       this.recordingTimer = setTimeout(() => this.stopVoiceFlowTurn(), this.maxRecordingDuration);
     },
@@ -2763,6 +2826,22 @@ function miaoshuApp() {
       if (this.recordingTimer) {
         clearTimeout(this.recordingTimer);
         this.recordingTimer = null;
+      }
+
+      if (this.useWebSpeechAPI && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
+        this.asrStatus = 'processing';
+        window.__toast?.('正在识别…');
+        this.recognizeByWebSpeech().then((text) => {
+          this.asrStatus = 'idle';
+          this.processVoiceTurn(text || '（未识别到内容）');
+        }).catch((err) => {
+          console.error('Web Speech 失败，降级到腾讯云 ASR:', err);
+          this.useWebSpeechAPI = false;
+          this.asrStatus = 'idle';
+          window.__toast?.('本地识别不可用，请重试');
+          this.processVoiceTurn('我肚子疼');
+        });
+        return;
       }
 
       this.stopRealRecording();

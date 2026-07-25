@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "headers": [
     {
       "source": "/(.*)",
@@ -10,8 +11,15 @@
       ]
     }
   ],
-  "installCommand": "npm install --legacy-peer-deps",
   "rewrites": [
+    {
+      "source": "/api/asr",
+      "destination": "/api/asr.js"
+    },
+    {
+      "source": "/api/asr-stream",
+      "destination": "/api/asr-stream.js"
+    },
     {
       "source": "/",
       "destination": "/index.html"
