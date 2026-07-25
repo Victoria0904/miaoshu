@@ -2591,25 +2591,6 @@ function miaoshuApp() {
         window.__toast?.('当前环境不支持录音');
         return;
       }
-      // 优先使用 MediaRecorder 录制，兼容性更好、延迟更低
-      if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
-        this.audioStream = await navigator.mediaDevices.getUserMedia({ audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-        }});
-        const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : (MediaRecorder.isTypeSupported('audio/webm;codecs=pcm') ? 'audio/webm;codecs=pcm' : 'audio/webm');
-        const mediaRecorder = new MediaRecorder(this.audioStream, { mimeType });
-        const chunks = [];
-        mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-        return new Promise((resolve) => {
-          mediaRecorder.onstart = () => { this.audioRecorder = { type: 'media', mediaRecorder, chunks, startTime: Date.now() }; resolve(); };
-          mediaRecorder.start(100);
-        });
-      }
-      // 降级到 ScriptProcessor 手动采集
-      this.audioChunks = [];
       this.audioStream = await navigator.mediaDevices.getUserMedia({ audio: {
         sampleRate: 16000,
         channelCount: 1,
@@ -2625,50 +2606,37 @@ function miaoshuApp() {
       };
       source.connect(processor);
       processor.connect(this.audioContext.destination);
-      this.audioRecorder = { type: 'script', source, processor, chunks, startTime: Date.now() };
+      this.audioRecorder = { source, processor, chunks, startTime: Date.now() };
     },
 
     stopRealRecording() {
       if (!this.audioRecorder) return;
-      const recorder = this.audioRecorder;
+      const { source, processor, chunks } = this.audioRecorder;
+      if (source) source.disconnect();
+      if (processor) processor.disconnect();
+      if (this.audioStream) this.audioStream.getTracks().forEach(t => t.stop());
+      if (this.audioContext && this.audioContext.state !== 'closed') this.audioContext.close();
       this.audioRecorder = null;
-
-      const finalize = async () => {
-        if (recorder.type === 'media') {
-          const { chunks } = recorder;
-          const mimeType = chunks[0]?.type || 'audio/wav';
-          const blob = new Blob(chunks, { type: mimeType });
-          return { blob, mimeType };
-        }
-        const { source, processor, chunks } = recorder;
-        if (source) source.disconnect();
-        if (processor) processor.disconnect();
-        const pcm = this.mergeFloat32Arrays(chunks);
-        const wavBlob = this.pcmToWav(pcm, 16000, 1);
-        return { blob: wavBlob, mimeType: 'audio/wav' };
-      };
-
-      const stopMedia = () => {
-        if (recorder.type === 'media' && recorder.mediaRecorder && recorder.mediaRecorder.state !== 'inactive') {
-          try { recorder.mediaRecorder.stop(); } catch (e) {}
-        }
-        if (this.audioStream) this.audioStream.getTracks().forEach(t => t.stop());
-        if (this.audioContext && this.audioContext.state !== 'closed') this.audioContext.close();
-      };
-
-      stopMedia();
       this.asrStatus = 'processing';
       window.__toast?.('正在识别…');
-
-      finalize().then(({ blob }) => this.blobToBase64(blob).then(base64 => this.recognizeTencentASR(base64, 'wav'))).then((text) => {
+      try {
+        const pcm = this.mergeFloat32Arrays(chunks);
+        const wavBlob = this.pcmToWav(pcm, 16000, 1);
+        this.blobToBase64(wavBlob).then(base64 => this.recognizeTencentASR(base64, 'wav')).then((text) => {
+          this.asrStatus = 'idle';
+          this.processVoiceTurn(text || '（未识别到内容）');
+        }).catch((err) => {
+          this.asrStatus = 'idle';
+          console.error('ASR 识别失败:', err);
+          window.__toast?.('语音转文字失败：' + (err.message || '未知错误'));
+          this.processVoiceTurn('我肚子疼');
+        });
+      } catch (err) {
         this.asrStatus = 'idle';
-        this.processVoiceTurn(text || '（未识别到内容）');
-      }).catch((err) => {
-        this.asrStatus = 'idle';
-        console.error('ASR 识别失败:', err);
-        window.__toast?.('语音转文字失败：' + (err.message || '未知错误'));
+        console.error('录音处理失败:', err);
+        window.__toast?.('录音处理失败：' + (err.message || '未知错误'));
         this.processVoiceTurn('我肚子疼');
-      });
+      }
     },
 
     mergeFloat32Arrays(chunks) {
